@@ -43,11 +43,42 @@
     <% end %>
   <% end %>
 <% else %>
-  <div style="text-align:center;padding:3rem 1rem;">
-    <h1 style="font-size:2rem;margin-bottom:0.5rem;">Touchline</h1>
-    <p style="color:var(--gray-600);margin-bottom:2rem;">Track tries, assists and leaderboards for your TRL team.</p>
-    <%= link_to "Sign in", new_session_path, class: "btn btn-primary" %>
-    <span style="margin:0 0.5rem;color:var(--gray-400);">or</span>
-    <%= link_to "Sign up", new_registration_path, class: "btn btn-secondary" %>
+  <% content_for :suppress_header, true %>
+  <div class="landing">
+
+    <div class="landing-hero">
+      <div class="landing-eyebrow">Touchline</div>
+      <h1 class="landing-headline">Know who's running hot this season.</h1>
+      <p class="landing-sub">Tries and assists tracked for every player. Fixtures pulled straight from TRL Australia. No spreadsheets, no chasing the scorer.</p>
+      <div class="landing-cta">
+        <%= link_to "Sign up free", new_registration_path, class: "btn btn-primary btn-landing" %>
+        <span class="landing-cta-or">Already on a team?</span>
+        <%= link_to "Sign in", new_session_path, class: "landing-signin-link" %>
+      </div>
+    </div>
+
+    <div class="landing-features">
+      <div class="landing-feature">
+        <div>
+          <div class="landing-feature-title">Fixtures from TRL, automatically</div>
+          <div class="landing-feature-body">Connect your team to Spawtz once. Fixtures and results pull through every day.</div>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div>
+          <div class="landing-feature-title">Enter stats after the final whistle</div>
+          <div class="landing-feature-body">Any team member can tap in tries and assists on their phone. Takes two minutes.</div>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div>
+          <div class="landing-feature-title">Season leaderboard</div>
+          <div class="landing-feature-body">Points tally updates after every game. See who's topping the table and settle the pub debate once and for all.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-footer-note">Free. No ads. No nonsense.</div>
+
   </div>
 <% end %>
