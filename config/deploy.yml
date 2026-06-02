@@ -7,7 +7,7 @@ image: breakwell/touchline
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 170.64.226.129
   # job:
   #   hosts:
   #     - 192.168.0.1

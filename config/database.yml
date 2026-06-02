@@ -84,6 +84,8 @@ production:
     database: touchline_production
     username: touchline
     password: <%= ENV["TOUCHLINE_DATABASE_PASSWORD"] %>
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
+    port: 5432
   cache:
     <<: *primary_production
     database: touchline_production_cache
