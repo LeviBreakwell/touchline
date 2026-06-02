@@ -1,0 +1,8 @@
+warthogs:
+  name: Warthogs
+  location: Brisbane
+  spawtz_venue_id: "200025"
+  spawtz_league_id: "200082"
+  spawtz_season_id: "1400063"
+  spawtz_team_id: "99999"
+  invite_token: "test-token-abc"

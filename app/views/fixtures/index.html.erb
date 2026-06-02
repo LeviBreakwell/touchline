@@ -1,0 +1,16 @@
+<p style="color: green"><%= notice %></p>
+
+<% content_for :title, "Fixtures" %>
+
+<h1>Fixtures</h1>
+
+<div id="fixtures">
+  <% @fixtures.each do |fixture| %>
+    <%= render fixture %>
+    <p>
+      <%= link_to "Show this fixture", fixture %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New fixture", new_fixture_path %>

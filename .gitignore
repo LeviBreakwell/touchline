@@ -1,0 +1,43 @@
+# Bundler
+/.bundle
+/vendor/bundle
+
+# Logs and temp
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+!/tmp/pids/
+
+# Local storage (uploaded files, etc.)
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+
+# Compiled assets
+/public/assets
+
+# Credentials — never commit master.key
+/config/master.key
+/config/credentials/*.key
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Kamal secrets (sourced at deploy time, never committed)
+# .kamal/secrets is intentionally committed as it contains no raw secrets
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*~
+.idea/
+.vscode/
+
+# Ruby LSP
+.ruby-lsp/

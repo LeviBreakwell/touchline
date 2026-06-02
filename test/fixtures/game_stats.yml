@@ -1,0 +1,5 @@
+johns_game_one:
+  fixture: played_with_stats
+  player: john
+  tries: 3
+  assists: 1

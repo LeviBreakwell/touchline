@@ -1,0 +1,63 @@
+<% content_for :title, "Pick your team – Touchline" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← Back", :back, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Pick your team</h1>
+<% if @competition_name.present? %>
+  <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1rem;"><%= @competition_name %></p>
+<% end %>
+
+<% if @teams.empty? %>
+  <div class="empty">
+    <p>No teams found for this competition.</p>
+    <%= link_to "← Back to locations", trl_locations_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+<% else %>
+  <input type="search" id="team-filter" placeholder="Search teams…"
+         style="width:100%;padding:0.6rem 0.85rem;border:1px solid var(--gray-200);border-radius:var(--radius);
+                font-size:1rem;margin-bottom:0.75rem;background:var(--white);"
+         autocomplete="off" autofocus>
+
+  <div id="team-list" style="display:grid;gap:0.5rem;">
+    <% @teams.each do |team| %>
+      <%= link_to new_team_path(
+            team_name:     team[:name],
+            team_id:       team[:team_id],
+            venue_id:      @venue_id,
+            league_id:     @league_id,
+            season_id:     @season_id,
+            location_name: params[:location_name],
+            location_slug: @location_slug
+          ),
+          class: "card team-option",
+          style: "display:block;text-decoration:none;color:inherit;padding:1rem 1.25rem;",
+          data: { name: team[:name].downcase } do %>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-weight:500;"><%= team[:name] %></span>
+          <span style="color:var(--gray-400);font-size:1.1rem;">›</span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <p id="team-filter-empty" style="display:none;text-align:center;color:var(--gray-400);padding:1.5rem 0;">
+    No teams match your search.
+  </p>
+
+  <script>
+    const input = document.getElementById("team-filter")
+    const cards = document.querySelectorAll(".team-option")
+    const empty = document.getElementById("team-filter-empty")
+    input.addEventListener("input", () => {
+      const q = input.value.toLowerCase().trim()
+      let visible = 0
+      cards.forEach(card => {
+        const match = !q || card.dataset.name.includes(q)
+        card.style.display = match ? "" : "none"
+        if (match) visible++
+      })
+      empty.style.display = visible === 0 ? "" : "none"
+    })
+  </script>
+<% end %>

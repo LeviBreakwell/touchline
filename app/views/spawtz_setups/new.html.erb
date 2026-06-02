@@ -1,0 +1,28 @@
+<% content_for :title, "Link TRL Australia – #{@team.name}" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Link to TRL Australia</h1>
+<p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
+  Go to <strong>trl.com.au</strong>, find your competition under Locations &rarr; League, and copy the IDs from the URL.<br>
+  The URL looks like: <code>/venue/<strong>VENUE_ID</strong>/league/<strong>LEAGUE_ID</strong>/season/<strong>SEASON_ID</strong></code>
+</p>
+
+<div style="max-width:480px;">
+  <%= form_with model: @team, url: team_spawtz_setup_path(@team), method: :post do |f| %>
+    <div class="form-group">
+      <%= f.label :spawtz_venue_id, "Venue ID" %>
+      <%= f.text_field :spawtz_venue_id, placeholder: "e.g. 12345" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :spawtz_league_id, "League ID" %>
+      <%= f.text_field :spawtz_league_id, placeholder: "e.g. 67890" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :spawtz_season_id, "Season ID" %>
+      <%= f.text_field :spawtz_season_id, placeholder: "e.g. 11111" %>
+    </div>
+    <%= f.submit "Sync fixtures", class: "btn btn-primary btn-full" %>
+  <% end %>
+</div>

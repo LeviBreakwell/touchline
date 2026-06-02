@@ -1,0 +1,19 @@
+<% content_for :title, "Add Player – #{@team.name}" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← Roster", team_players_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Add player</h1>
+
+<div style="max-width:400px;margin-top:1rem;">
+  <%= form_with model: [@team, @player] do |f| %>
+    <% if @player.errors.any? %>
+      <div class="flash alert"><%= @player.errors.full_messages.first %></div>
+    <% end %>
+    <div class="form-group">
+      <%= f.label :name, "Name" %>
+      <%= f.text_field :name, autofocus: true, placeholder: "e.g. Damo or Tom H" %>
+    </div>
+    <%= f.submit "Add to roster", class: "btn btn-primary btn-full" %>
+  <% end %>
+</div>

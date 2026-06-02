@@ -1,0 +1,35 @@
+<% content_for :title, "Select day – Touchline" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← Locations", trl_locations_path, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Select your competition day</h1>
+<p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
+  Showing competitions at <strong><%= @location_slug&.titleize %></strong>.
+</p>
+
+<% if @leagues.empty? %>
+  <div class="empty">
+    <p>No active competitions found at this location.</p>
+    <%= link_to "← Back to locations", trl_locations_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+<% else %>
+  <div style="display:grid;gap:0.5rem;">
+    <% @leagues.each do |league| %>
+      <%= link_to trl_pick_path(
+            venue_id:      league[:venue_id],
+            league_id:     league[:league_id],
+            season_id:     league[:season_id],
+            location_name: @location_slug&.titleize,
+            location_slug: @location_slug
+          ),
+          class: "card",
+          style: "display:block;text-decoration:none;color:inherit;padding:1rem 1.25rem;" do %>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-weight:500;"><%= league[:name] %></span>
+          <span style="color:var(--gray-400);font-size:1.1rem;">›</span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

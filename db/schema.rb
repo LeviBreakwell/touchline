@@ -1,0 +1,113 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.0].define(version: 2026_06_02_000002) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "fixtures", force: :cascade do |t|
+    t.string "opponent_name"
+    t.datetime "date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "season_id", null: false
+    t.string "spawtz_fixture_id"
+    t.integer "our_score"
+    t.integer "opponent_score"
+    t.index ["season_id"], name: "index_fixtures_on_season_id"
+    t.index ["spawtz_fixture_id"], name: "index_fixtures_on_spawtz_fixture_id"
+  end
+
+  create_table "game_stats", force: :cascade do |t|
+    t.bigint "fixture_id", null: false
+    t.bigint "player_id", null: false
+    t.integer "tries", default: 0, null: false
+    t.integer "assists", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fixture_id", "player_id"], name: "index_game_stats_on_fixture_id_and_player_id", unique: true
+    t.index ["fixture_id"], name: "index_game_stats_on_fixture_id"
+    t.index ["player_id"], name: "index_game_stats_on_player_id"
+  end
+
+  create_table "players", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "name", null: false
+    t.index ["team_id"], name: "index_players_on_team_id"
+    t.index ["user_id"], name: "index_players_on_user_id"
+  end
+
+  create_table "seasons", force: :cascade do |t|
+    t.string "name"
+    t.bigint "team_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "spawtz_season_id"
+    t.index ["team_id"], name: "index_seasons_on_team_id"
+  end
+
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "team_memberships", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "team_id", null: false
+    t.integer "role", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["team_id"], name: "index_team_memberships_on_team_id"
+    t.index ["user_id"], name: "index_team_memberships_on_user_id"
+  end
+
+  create_table "teams", force: :cascade do |t|
+    t.string "name"
+    t.string "location"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "spawtz_venue_id"
+    t.string "spawtz_league_id"
+    t.string "spawtz_season_id"
+    t.string "spawtz_team_id"
+    t.string "invite_token"
+    t.string "trl_location_slug"
+    t.index ["invite_token"], name: "index_teams_on_invite_token", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "email_address", default: "", null: false
+    t.string "password_digest", default: "", null: false
+    t.string "name"
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
+  end
+
+  add_foreign_key "fixtures", "seasons", deferrable: :deferred
+  add_foreign_key "game_stats", "fixtures", deferrable: :deferred
+  add_foreign_key "game_stats", "players", deferrable: :deferred
+  add_foreign_key "players", "teams", deferrable: :deferred
+  add_foreign_key "players", "users", deferrable: :deferred
+  add_foreign_key "seasons", "teams", deferrable: :deferred
+  add_foreign_key "sessions", "users", deferrable: :deferred
+  add_foreign_key "team_memberships", "teams", deferrable: :deferred
+  add_foreign_key "team_memberships", "users", deferrable: :deferred
+end

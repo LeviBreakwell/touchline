@@ -1,0 +1,36 @@
+<% content_for :title, "Sign up – Touchline" %>
+<div style="max-width:400px;margin:2rem auto;">
+  <h1>Create account</h1>
+  <p style="color:var(--gray-600);margin-bottom:1.5rem;font-size:0.9rem;">Free, forever. Track your team's tries all season.</p>
+
+  <%= form_with model: @user, url: registration_path do |f| %>
+    <% if @user.errors.any? %>
+      <div class="flash alert">
+        <%= @user.errors.full_messages.first %>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= f.label :name, "Your name" %>
+      <%= f.text_field :name, autocomplete: "name", autofocus: true %>
+    </div>
+    <div class="form-group">
+      <%= f.label :email_address, "Email" %>
+      <%= f.email_field :email_address, autocomplete: "email" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :password, "Password" %>
+      <%= f.password_field :password, autocomplete: "new-password" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :password_confirmation, "Confirm password" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+    </div>
+
+    <%= f.submit "Create account", class: "btn btn-primary btn-full" %>
+  <% end %>
+
+  <p style="text-align:center;margin-top:1rem;font-size:0.9rem;color:var(--gray-600);">
+    Already have an account? <%= link_to "Sign in", new_session_path %>
+  </p>
+</div>

@@ -1,0 +1,40 @@
+<% content_for :title, "Join #{@team.name} – Touchline" %>
+
+<div style="max-width:400px;margin:2rem auto;">
+  <p style="font-size:0.8rem;color:var(--gray-400);margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.08em;text-align:center;">You've been invited to join</p>
+  <h1 style="font-size:1.8rem;margin-bottom:0.15rem;text-align:center;"><%= @team.name %></h1>
+  <p style="color:var(--gray-600);margin-bottom:1.5rem;text-align:center;"><%= @team.location %> · TRL</p>
+
+  <% if @joining_as %>
+    <div style="background:var(--green-light);border-radius:var(--radius);padding:0.75rem 1rem;margin-bottom:1.25rem;text-align:center;">
+      <div style="font-size:0.8rem;color:var(--green-dark);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.15rem;">Joining as player</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--green-dark);"><%= @joining_as.name %></div>
+    </div>
+  <% end %>
+
+  <% if @leaderboard&.any? %>
+    <div class="card" style="padding:0;margin-bottom:1.5rem;">
+      <div style="padding:0.75rem 1rem 0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);">
+        <%= @current_season&.name %> standings
+      </div>
+      <table class="leaderboard">
+        <tbody>
+          <% @leaderboard.each_with_index do |row, i| %>
+            <tr>
+              <td class="rank"><%= i + 1 %></td>
+              <td><%= row[:name] %></td>
+              <td style="text-align:right;color:var(--gray-600);"><%= row[:tries] %>T</td>
+              <td style="text-align:right;color:var(--gray-600);"><%= row[:assists] %>A</td>
+              <td style="text-align:right;" class="points"><%= row[:points] %> pts</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+
+  <div style="display:flex;flex-direction:column;gap:0.75rem;">
+    <%= link_to "Create account & join", new_registration_path, class: "btn btn-primary btn-full" %>
+    <p style="font-size:0.85rem;color:var(--gray-400);text-align:center;">Already have an account? <%= link_to "Sign in", new_session_path %></p>
+  </div>
+</div>

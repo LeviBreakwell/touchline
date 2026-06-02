@@ -1,0 +1,84 @@
+<% content_for :title, "#{@season.name} – #{@team.name}" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<div class="section-header" style="margin-bottom:1.25rem;">
+  <div>
+    <h1><%= @season.name %></h1>
+    <p class="card-meta"><%= @team.name %></p>
+  </div>
+</div>
+
+<%# ── ENTER STATS PROMPT (most recently played game with no stats yet) ── %>
+<% if @next_to_record && Current.user&.member_of?(@team) %>
+  <%= link_to team_season_fixture_path(@team, @season, @next_to_record), class: "record-prompt" do %>
+    <div class="record-prompt-eyebrow">Stats not entered yet</div>
+    <div class="record-prompt-title">vs <%= @next_to_record.opponent_name %></div>
+    <div class="record-prompt-meta">
+      <%= @next_to_record.date&.strftime("%a %-d %b") %>
+      &middot;
+      <% if @next_to_record.played? %>
+        <%= @next_to_record.our_score %> – <%= @next_to_record.opponent_score %>
+        <span class="badge badge-<%= @next_to_record.result %>" style="margin-left:0.25rem;"><%= @next_to_record.result.upcase %></span>
+      <% end %>
+    </div>
+    <div class="record-prompt-cta">Enter tries &amp; assists →</div>
+  <% end %>
+<% end %>
+
+<%# ── LEADERBOARD ── %>
+<% any_stats = @leaderboard.any? { |r| r[:points] > 0 } %>
+<% if any_stats %>
+  <div class="card" style="padding:0;margin-bottom:1.25rem;">
+    <table class="leaderboard">
+      <thead>
+        <tr>
+          <th class="rank">#</th>
+          <th>Player</th>
+          <th style="text-align:right;">T</th>
+          <th style="text-align:right;">A</th>
+          <th style="text-align:right;" class="points">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @leaderboard.each_with_index do |row, i| %>
+          <tr>
+            <td class="rank"><%= i + 1 %></td>
+            <td><%= row[:player].name %></td>
+            <td style="text-align:right;"><%= row[:tries] %></td>
+            <td style="text-align:right;"><%= row[:assists] %></td>
+            <td style="text-align:right;" class="points"><%= row[:points] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<%# ── FIXTURES ── %>
+<h2 style="margin-bottom:0.75rem;">Fixtures</h2>
+<% if @fixtures.empty? %>
+  <div class="empty"><p>No fixtures yet.</p></div>
+<% else %>
+  <% @fixtures.each do |fixture| %>
+    <%= link_to team_season_fixture_path(@team, @season, fixture), class: "card fixture-card" do %>
+      <div class="fixture-vs">
+        <div class="opponent">vs <%= fixture.opponent_name %></div>
+        <div class="date"><%= fixture.date&.strftime("%a %-d %b · %-I:%M%P") %></div>
+      </div>
+      <% if fixture.played? %>
+        <div class="fixture-score"><%= fixture.our_score %> – <%= fixture.opponent_score %></div>
+        <span class="badge badge-<%= fixture.result %>"><%= fixture.result.upcase %></span>
+      <% else %>
+        <span class="badge badge-tbd">TBD</span>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% unless any_stats || @next_to_record %>
+  <div class="empty" style="margin-top:1rem;">
+    <p>No stats yet. Tap a played fixture to enter tries and assists.</p>
+  </div>
+<% end %>

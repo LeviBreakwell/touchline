@@ -1,0 +1,11 @@
+admin_membership:
+  user: admin_user
+  team: warthogs
+  role: 1
+  status: 1
+
+member_membership:
+  user: member_user
+  team: warthogs
+  role: 0
+  status: 1

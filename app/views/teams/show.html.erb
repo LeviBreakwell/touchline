@@ -1,0 +1,106 @@
+<% content_for :title, "#{@team.name} – Touchline" %>
+
+<div class="section-header" style="margin-bottom:1.5rem;">
+  <div>
+    <h1><%= @team.name %></h1>
+    <p class="card-meta"><%= @team.location %> · TRL</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.5rem;">
+    <% if @membership&.admin? %>
+      <button type="button" class="btn btn-secondary btn-sm"
+              onclick="navigator.clipboard.writeText(<%= "Join #{@team.name} on Touchline to track our stats: #{team_invite_url(@team.invite_token)}".to_json %>).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy invite', 2000) })">Copy invite</button>
+      <%= button_to "Reset link", regenerate_invite_team_path(@team), method: :patch,
+            class: "btn btn-secondary btn-sm",
+            data: { turbo_confirm: "This will invalidate the current invite link. Anyone with the old link won't be able to join. Continue?" } %>
+    <% end %>
+    <% if @membership&.admin? %>
+      <span class="badge badge-admin">Admin</span>
+    <% elsif @membership&.accepted? %>
+      <span class="badge">Member</span>
+    <% end %>
+  </div>
+</div>
+
+<% if @current_season %>
+  <%= link_to team_season_path(@team, @current_season), class: "btn btn-primary btn-full", style: "margin-bottom:1.25rem;" do %>
+    <%= @current_season.name %> &rarr;
+  <% end %>
+<% else %>
+  <div class="card">
+    <p class="card-meta">Fixtures syncing…</p>
+  </div>
+<% end %>
+
+<%# ── CLAIM PLAYER PROMPT ── %>
+<% if @membership&.accepted? && @my_player.nil? && @unclaimed_players&.any? %>
+  <div class="claim-prompt">
+    <div class="claim-prompt-title">Which player on the roster is you?</div>
+    <div class="claim-prompt-subtitle">Tap your name so your stats show up correctly.</div>
+    <div class="claim-prompt-list">
+      <% @unclaimed_players.each do |player| %>
+        <%= button_to player.name, claim_team_player_path(@team, player), method: :patch,
+              class: "claim-btn" %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<%# ── ALL-TIME LEADERBOARD ── %>
+<% if @all_time_leaderboard&.any? %>
+  <h2 style="margin-bottom:0.5rem;">All-time leaderboard</h2>
+  <div class="card" style="padding:0;margin-bottom:1.25rem;">
+    <table class="leaderboard">
+      <thead>
+        <tr>
+          <th class="rank">#</th>
+          <th>Player</th>
+          <th style="text-align:right;">T</th>
+          <th style="text-align:right;">A</th>
+          <th style="text-align:right;" class="points">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @all_time_leaderboard.each_with_index do |row, i| %>
+          <tr>
+            <td class="rank"><%= i + 1 %></td>
+            <td><%= row[:player].name %></td>
+            <td style="text-align:right;color:var(--gray-600);"><%= row[:tries] %></td>
+            <td style="text-align:right;color:var(--gray-600);"><%= row[:assists] %></td>
+            <td style="text-align:right;" class="points"><%= row[:points] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% if Current.user %>
+  <% if @membership.nil? %>
+    <%= button_to "Request to join", team_membership_path(@team), method: :post, class: "btn btn-secondary btn-full", style: "margin-top:1rem;" %>
+  <% elsif @membership.pending? %>
+    <div class="card" style="text-align:center;margin-top:1rem;">
+      <p class="card-meta">Your join request is pending — an admin will approve you shortly.</p>
+    </div>
+  <% end %>
+
+  <% if @membership&.admin? %>
+    <div class="divider"></div>
+    <% players_count = @team.players.count %>
+    <% if players_count.zero? %>
+      <div class="card" style="background:var(--green-light);border:none;margin-bottom:1rem;">
+        <div style="font-weight:600;color:var(--green-dark);margin-bottom:0.25rem;">Add your players to start tracking stats</div>
+        <div style="font-size:0.85rem;color:var(--green-dark);margin-bottom:0.75rem;">Stats can't be recorded until the roster is set up.</div>
+        <%= link_to "Add players", team_players_path(@team), class: "btn btn-primary btn-sm" %>
+      </div>
+    <% end %>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <%= link_to "Roster (#{players_count})", team_players_path(@team), class: "btn btn-secondary btn-sm" %>
+      <% pending_count = @team.team_memberships.pending.count %>
+      <%= link_to "Members#{pending_count > 0 ? " (#{pending_count} pending)" : ""}", team_memberships_path(@team), class: "btn btn-secondary btn-sm" %>
+    </div>
+  <% end %>
+<% else %>
+  <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--gray-600);">
+    <%= link_to "Sign in", new_session_path %> or <%= link_to "create an account", new_registration_path %> to join this team.
+  </p>
+<% end %>

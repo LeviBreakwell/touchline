@@ -1,0 +1,5 @@
+class AddSpawtzTeamIdToTeams < ActiveRecord::Migration[8.0]
+  def change
+    add_column :teams, :spawtz_team_id, :string
+  end
+end

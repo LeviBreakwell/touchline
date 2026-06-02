@@ -1,0 +1,8 @@
+john:
+  name: John
+  team: warthogs
+
+jane:
+  name: Jane
+  team: warthogs
+  user: member_user

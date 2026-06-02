@@ -1,0 +1,33 @@
+# examples:
+#   periodic_cleanup:
+#     class: CleanSoftDeletedRecordsJob
+#     queue: background
+#     args: [ 1000, { batch_size: 500 } ]
+#     schedule: every hour
+#   periodic_cleanup_with_command:
+#     command: "SoftDeletedRecord.due.delete_all"
+#     priority: 2
+#     schedule: at 5am every day
+
+production:
+  clear_solid_queue_finished_jobs:
+    command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
+    schedule: every hour at minute 12
+
+  # Morning run picks up schedule changes published overnight (8am AEST = 10pm UTC prev day).
+  # Three evening runs cover the results window — most TRL games finish 8–10pm AEST.
+  sync_fixtures_morning:
+    class: SyncAllTeamsJob
+    schedule: every day at 10pm  # 8am AEST
+
+  sync_fixtures_7pm:
+    class: SyncAllTeamsJob
+    schedule: every day at 9am  # 7pm AEST
+
+  sync_fixtures_8pm:
+    class: SyncAllTeamsJob
+    schedule: every day at 10am  # 8pm AEST
+
+  sync_fixtures_9pm:
+    class: SyncAllTeamsJob
+    schedule: every day at 11am  # 9pm AEST

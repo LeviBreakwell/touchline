@@ -1,0 +1,39 @@
+<% content_for :title, "#{@team_name} – Touchline" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← Back", :back, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+
+<% if @existing_team %>
+  <h1>Join <%= @team_name %></h1>
+  <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
+    This team is already on Touchline. Your request will go to the team admin for approval.
+  </p>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-title"><%= @team_name %></div>
+    <div class="card-meta"><%= @location_name %></div>
+  </div>
+  <%= form_with url: teams_path, method: :post do |f| %>
+    <%= hidden_field_tag "team[spawtz_team_id]", @team_id %>
+    <%= f.submit "Request to join", class: "btn btn-primary btn-full" %>
+  <% end %>
+<% else %>
+  <h1>Link <%= @team_name %></h1>
+  <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
+    You'll be the team admin. Fixtures will sync automatically from TRL Australia.
+  </p>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-title"><%= @team_name %></div>
+    <div class="card-meta"><%= @location_name %></div>
+  </div>
+  <%= form_with url: teams_path, method: :post do |f| %>
+    <%= hidden_field_tag "team[name]",              @team_name %>
+    <%= hidden_field_tag "team[location]",          @location_name %>
+    <%= hidden_field_tag "team[trl_location_slug]", @location_slug %>
+    <%= hidden_field_tag "team[spawtz_venue_id]",   @venue_id %>
+    <%= hidden_field_tag "team[spawtz_league_id]",  @league_id %>
+    <%= hidden_field_tag "team[spawtz_season_id]",  @season_id %>
+    <%= hidden_field_tag "team[spawtz_team_id]",    @team_id %>
+    <%= f.submit "Confirm & sync fixtures", class: "btn btn-primary btn-full" %>
+  <% end %>
+<% end %>

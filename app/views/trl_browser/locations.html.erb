@@ -1,0 +1,27 @@
+<% content_for :title, "Find your competition – Touchline" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← My Teams", root_path, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Find your competition</h1>
+<p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">Select the location where your team plays.</p>
+
+<% if @locations.empty? %>
+  <div class="empty">
+    <p>Couldn't load locations. Check your connection and try again.</p>
+    <%= link_to "Retry", trl_locations_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+<% else %>
+  <div style="display:grid;gap:0.5rem;">
+    <% @locations.each do |loc| %>
+      <%= link_to trl_leagues_path(location: loc[:slug]),
+            class: "card",
+            style: "display:block;text-decoration:none;color:inherit;padding:1rem 1.25rem;" do %>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-weight:500;"><%= loc[:name] %></span>
+          <span style="color:var(--gray-400);font-size:1.1rem;">›</span>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

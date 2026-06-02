@@ -1,0 +1,18 @@
+played_with_stats:
+  opponent_name: WGD 13+
+  date: 2026-05-11 19:40:00
+  our_score: 5
+  opponent_score: 3
+  season: winter_2026
+
+played_no_stats:
+  opponent_name: 51 Shades of Shape
+  date: 2026-05-25 18:55:00
+  our_score: 10
+  opponent_score: 2
+  season: winter_2026
+
+upcoming:
+  opponent_name: Brisbane Bandits
+  date: 2026-06-01 19:40:00
+  season: winter_2026

@@ -1,0 +1,53 @@
+<% content_for :title, "Touchline" %>
+
+<% if Current.user %>
+  <div class="section-header" style="margin-bottom:1.25rem;">
+    <h1>My Teams</h1>
+    <%= link_to "Find on TRL", trl_locations_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+
+  <% if @my_teams.empty? %>
+    <div class="empty">
+      <p>You're not part of any team yet.</p>
+      <%= link_to "Find your team on TRL", trl_locations_path, class: "btn btn-primary" %>
+    </div>
+  <% else %>
+    <% @my_teams.each do |team| %>
+      <% season = team.seasons.order(created_at: :desc).first %>
+      <% next_to_record = season && season.fixtures
+           .where.not(our_score: nil)
+           .left_joins(:game_stats)
+           .where(game_stats: { id: nil })
+           .order(date: :desc)
+           .first %>
+
+      <% if next_to_record %>
+        <%= link_to team_season_fixture_path(team, season, next_to_record), class: "record-prompt", style: "margin-bottom:0.75rem;" do %>
+          <div class="record-prompt-eyebrow"><%= team.name %> · <%= season.name %></div>
+          <div class="record-prompt-title">vs <%= next_to_record.opponent_name %></div>
+          <div class="record-prompt-meta">
+            <%= next_to_record.date&.strftime("%a %-d %b") %>
+            &middot;
+            <%= next_to_record.our_score %> – <%= next_to_record.opponent_score %>
+            <span class="badge badge-<%= next_to_record.result %>" style="margin-left:0.25rem;"><%= next_to_record.result.upcase %></span>
+          </div>
+          <div class="record-prompt-cta">Enter tries &amp; assists →</div>
+        <% end %>
+      <% else %>
+        <% path = season ? team_season_path(team, season) : team_path(team) %>
+        <%= link_to path, class: "card", style: "display:block;text-decoration:none;color:inherit;margin-bottom:0.75rem;" do %>
+          <div class="card-title"><%= team.name %></div>
+          <div class="card-meta"><%= team.location %> &middot; <%= season&.name || "No season yet" %></div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% else %>
+  <div style="text-align:center;padding:3rem 1rem;">
+    <h1 style="font-size:2rem;margin-bottom:0.5rem;">Touchline</h1>
+    <p style="color:var(--gray-600);margin-bottom:2rem;">Track tries, assists and leaderboards for your TRL team.</p>
+    <%= link_to "Sign in", new_session_path, class: "btn btn-primary" %>
+    <span style="margin:0 0.5rem;color:var(--gray-400);">or</span>
+    <%= link_to "Sign up", new_registration_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

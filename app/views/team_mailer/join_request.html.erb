@@ -1,0 +1,5 @@
+<p><strong><%= @user.name %></strong> (<%= @user.email_address %>) has requested to join <strong><%= @team.name %></strong> on Touchline.</p>
+
+<p>
+  <%= link_to "Review members", team_memberships_url(@team) %>
+</p>

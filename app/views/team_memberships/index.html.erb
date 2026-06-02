@@ -1,0 +1,46 @@
+<% content_for :title, "Members – #{@team.name}" %>
+
+<div style="margin-bottom:0.5rem;">
+  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
+</div>
+<h1>Members</h1>
+
+<% if @pending.any? %>
+  <h2 style="margin-top:1rem;">Pending requests</h2>
+  <% @pending.each do |m| %>
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+      <div>
+        <div><%= m.user.name %></div>
+        <div class="card-meta"><%= m.user.email_address %></div>
+      </div>
+      <div style="display:flex;gap:0.5rem;">
+        <%= button_to "Approve", team_membership_path(@team, m), method: :patch,
+              params: { status: "accepted" }, class: "btn btn-primary btn-sm" %>
+        <%= button_to "Decline", team_membership_path(@team, m), method: :patch,
+              params: { status: "rejected" }, class: "btn btn-secondary btn-sm" %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<h2 style="margin-top:1.5rem;">Accepted members</h2>
+<% if @accepted.empty? %>
+  <p class="card-meta">No members yet.</p>
+<% else %>
+  <% @accepted.each do |m| %>
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+      <div style="flex:1;">
+        <div><%= m.user.name %></div>
+        <div class="card-meta"><%= m.user.email_address %></div>
+      </div>
+      <span class="badge <%= m.admin? ? 'badge-admin' : '' %>"><%= m.role.capitalize %></span>
+      <% if m.admin? %>
+        <%= button_to "Remove admin", team_membership_path(@team, m), method: :patch,
+              params: { role: "member" }, class: "btn btn-secondary btn-sm" %>
+      <% else %>
+        <%= button_to "Make admin", team_membership_path(@team, m), method: :patch,
+              params: { role: "admin" }, class: "btn btn-secondary btn-sm" %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Touchline" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+
+        <div class="header-left">
+        </div>
+
+        <% _home_path = if Current.user
+             _teams = Current.user.teams.limit(2).to_a
+             _teams.size == 1 ? team_path(_teams.first) : root_path
+           else
+             root_path
+           end %>
+        <div class="header-center">
+          <%= link_to "Touchline", _home_path, class: "brand" %>
+        </div>
+
+        <div class="header-right">
+          <% if Current.user %>
+            <details class="user-menu">
+              <summary class="user-avatar" title="<%= Current.user.name %>">
+                <%= Current.user.name.split.map(&:first).join.upcase.first(2) %>
+              </summary>
+              <div class="user-dropdown">
+                <div class="user-dropdown-name"><%= Current.user.name %></div>
+                <div class="user-dropdown-email"><%= Current.user.email_address %></div>
+                <div class="nav-dropdown-divider" style="margin-top:0.4rem;"></div>
+                <%= link_to "My Teams", _home_path, class: "nav-dropdown-link" %>
+                <%= link_to "Find a team on TRL", trl_locations_path, class: "nav-dropdown-link" %>
+                <div class="nav-dropdown-divider"></div>
+                <%= button_to "Sign out", session_path, method: :delete, class: "nav-dropdown-link nav-dropdown-signout" %>
+              </div>
+            </details>
+          <% else %>
+            <%= link_to "Sign in", new_session_path, class: "btn btn-secondary btn-sm" %>
+            <%= link_to "Sign up", new_registration_path, class: "btn btn-primary btn-sm" %>
+          <% end %>
+        </div>
+
+      </div>
+    </header>
+
+    <main class="container">
+      <% flash.each do |type, message| %>
+        <div class="flash <%= type %>"><%= message %></div>
+      <% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>
