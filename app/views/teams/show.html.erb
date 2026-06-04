@@ -12,15 +12,17 @@
         if (navigator.share) {
           navigator.share({ title: <%= "Join #{@team.name} on Touchline".to_json %>, text: <%= "Join #{@team.name} on Touchline to track our stats".to_json %>, url: url }).catch(function(){});
         } else {
-          navigator.clipboard.writeText(url).then(function(){ btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Copy invite' }, 2000) });
+          navigator.clipboard.writeText(url).then(function(){ btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Invite' }, 2000) });
         }
-      })(this)">Copy invite</button>
-      <%= button_to "Reset link", regenerate_invite_team_path(@team), method: :patch,
-            class: "btn btn-secondary btn-sm",
-            data: { turbo_confirm: "This will invalidate the current invite link. Anyone with the old link won't be able to join. Continue?" } %>
-    <% end %>
-    <% if @membership&.admin? %>
-      <span class="badge badge-admin">Admin</span>
+      })(this)">Invite</button>
+      <details style="position:relative;">
+        <summary class="badge badge-admin" style="cursor:pointer;list-style:none;">Admin</summary>
+        <div style="position:absolute;right:0;top:calc(100% + 0.35rem);background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:0.5rem;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <%= button_to "Reset invite link", regenerate_invite_team_path(@team), method: :patch,
+                class: "btn btn-secondary btn-sm",
+                data: { turbo_confirm: "This will invalidate the current invite link. Anyone with the old link won't be able to join. Continue?" } %>
+        </div>
+      </details>
     <% elsif @membership&.accepted? %>
       <span class="badge">Member</span>
     <% end %>
