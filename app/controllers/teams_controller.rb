@@ -22,24 +22,25 @@ class TeamsController < ApplicationController
     if @membership&.accepted?
       @my_player = @team.players.find_by(user_id: Current.user.id)
       @unclaimed_players = @team.players.where(user_id: nil).order(:name) if @my_player.nil?
-    end
-    stats_by_player = GameStat
-      .joins(player: :team)
-      .where(players: { team_id: @team.id })
-      .group(:player_id)
-      .select("player_id, SUM(tries) AS total_tries, SUM(assists) AS total_assists, COUNT(*) AS total_games")
-      .index_by(&:player_id)
 
-    @all_time_leaderboard = @team.players
-      .order(:name)
-      .filter_map { |p|
-        s = stats_by_player[p.id]
-        next if s.nil? || s.total_games.to_i.zero?
-        tries   = s.total_tries.to_i
-        assists = s.total_assists.to_i
-        { player: p, tries: tries, assists: assists, points: (tries * 2) + assists, games: s.total_games.to_i }
-      }
-      .sort_by { |r| [-r[:points], -r[:tries], -r[:assists]] }
+      stats_by_player = GameStat
+        .joins(player: :team)
+        .where(players: { team_id: @team.id })
+        .group(:player_id)
+        .select("player_id, SUM(tries) AS total_tries, SUM(assists) AS total_assists, COUNT(*) AS total_games")
+        .index_by(&:player_id)
+
+      @all_time_leaderboard = @team.players
+        .order(:name)
+        .filter_map { |p|
+          s = stats_by_player[p.id]
+          next if s.nil? || s.total_games.to_i.zero?
+          tries   = s.total_tries.to_i
+          assists = s.total_assists.to_i
+          { player: p, tries: tries, assists: assists, points: (tries * 2) + assists, games: s.total_games.to_i }
+        }
+        .sort_by { |r| [-r[:points], -r[:tries], -r[:assists]] }
+    end
   end
 
   def new

@@ -15,9 +15,11 @@
       </div>
       <div style="display:flex;gap:0.5rem;">
         <%= button_to "Approve", team_membership_path(@team, m), method: :patch,
-              params: { status: "accepted" }, class: "btn btn-primary btn-sm" %>
+              params: { status: "accepted" }, class: "btn btn-primary btn-sm",
+              data: { turbo: false } %>
         <%= button_to "Decline", team_membership_path(@team, m), method: :patch,
-              params: { status: "rejected" }, class: "btn btn-secondary btn-sm" %>
+              params: { status: "rejected" }, class: "btn btn-secondary btn-sm",
+              data: { turbo: false } %>
       </div>
     </div>
   <% end %>
