@@ -7,8 +7,14 @@
   </div>
   <div style="display:flex;align-items:center;gap:0.5rem;">
     <% if @membership&.admin? %>
-      <button type="button" class="btn btn-secondary btn-sm"
-              onclick="navigator.clipboard.writeText(<%= "Join #{@team.name} on Touchline to track our stats: #{team_invite_url(@team.invite_token)}".to_json %>).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy invite', 2000) })">Copy invite</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="(function(btn){
+        var url = <%= team_invite_url(@team.invite_token).to_json %>;
+        if (navigator.share) {
+          navigator.share({ title: <%= "Join #{@team.name} on Touchline".to_json %>, text: <%= "Join #{@team.name} on Touchline to track our stats".to_json %>, url: url }).catch(function(){});
+        } else {
+          navigator.clipboard.writeText(url).then(function(){ btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Copy invite' }, 2000) });
+        }
+      })(this)">Copy invite</button>
       <%= button_to "Reset link", regenerate_invite_team_path(@team), method: :patch,
             class: "btn btn-secondary btn-sm",
             data: { turbo_confirm: "This will invalidate the current invite link. Anyone with the old link won't be able to join. Continue?" } %>
@@ -25,9 +31,17 @@
   <%= link_to team_season_path(@team, @current_season), class: "btn btn-primary btn-full", style: "margin-bottom:1.25rem;" do %>
     <%= @current_season.name %> &rarr;
   <% end %>
-<% else %>
+<% elsif @team.fixtures_synced_at.nil? %>
   <div class="card">
     <p class="card-meta">Fixtures syncing…</p>
+  </div>
+<% else %>
+  <div class="card">
+    <p style="margin-bottom:0.5rem;">No fixtures found — the sync may have failed.</p>
+    <p class="card-meta" style="margin-bottom:0.75rem;">Last attempted <%= time_ago_in_words(@team.fixtures_synced_at) %> ago.</p>
+    <% if @membership&.admin? %>
+      <%= button_to "Retry sync", sync_team_path(@team), method: :post, class: "btn btn-secondary btn-sm" %>
+    <% end %>
   </div>
 <% end %>
 

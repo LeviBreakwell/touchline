@@ -13,13 +13,8 @@
     </div>
   <% else %>
     <% @my_teams.each do |team| %>
-      <% season = team.seasons.order(created_at: :desc).first %>
-      <% next_to_record = season && season.fixtures
-           .where.not(our_score: nil)
-           .left_joins(:game_stats)
-           .where(game_stats: { id: nil })
-           .order(date: :desc)
-           .first %>
+      <% season = team.seasons.max_by(&:created_at) %>
+      <% next_to_record = season && @next_to_record_by_season[season.id] %>
 
       <% if next_to_record %>
         <%= link_to team_season_fixture_path(team, season, next_to_record), class: "record-prompt", style: "margin-bottom:0.75rem;" do %>

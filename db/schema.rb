@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_02_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_02_000002) do
     t.string "spawtz_team_id"
     t.string "invite_token"
     t.string "trl_location_slug"
+    t.datetime "fixtures_synced_at"
     t.index ["invite_token"], name: "index_teams_on_invite_token", unique: true
   end
 

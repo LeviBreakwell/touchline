@@ -1,9 +1,18 @@
 class TeamsController < ApplicationController
   allow_unauthenticated_access only: %i[show]
-  before_action :set_team, only: %i[show]
+  before_action :set_team, only: %i[show sync]
 
   def index
     @my_teams = Current.user ? Current.user.teams : []
+  end
+
+  def sync
+    unless Current.user&.admin_of?(@team)
+      redirect_to @team, alert: "Not authorised."
+      return
+    end
+    SyncFixturesJob.perform_later(@team.id)
+    redirect_to @team, notice: "Sync started — check back in a moment."
   end
 
   def regenerate_invite

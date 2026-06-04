@@ -11,7 +11,10 @@ Rails.application.routes.draw do
   end
 
   resources :teams, only: %i[new create show] do
-    member { patch :regenerate_invite }
+    member do
+      patch :regenerate_invite
+      post  :sync
+    end
     resource :spawtz_setup, only: %i[new create]
     resource :membership, only: %i[create destroy], as: :join
     resources :memberships, only: %i[index update destroy], controller: "team_memberships"
