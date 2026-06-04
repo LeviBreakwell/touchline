@@ -38,12 +38,22 @@ export default class extends Controller {
     const input   = row.querySelector(`input[data-field="${field}"]`)
     const display = row.querySelector(`[data-display="${field}"]`)
 
-    const next = Math.max(0, Math.min(99, (parseInt(input.value) || 0) + delta))
+    const current = parseInt(input.value) || 0
+    const next = Math.max(0, Math.min(99, current + delta))
     input.value = next
     if (display) display.textContent = next
 
+    if (next !== current) this.#flash(btn, delta > 0 ? "flash-green" : "flash-red")
+
     this.update()
     this.#markDirty()
+  }
+
+  #flash(btn, cls) {
+    btn.classList.remove("flash-green", "flash-red")
+    void btn.offsetWidth
+    btn.classList.add(cls)
+    btn.addEventListener("animationend", () => btn.classList.remove(cls), { once: true })
   }
 
   #markDirty() {

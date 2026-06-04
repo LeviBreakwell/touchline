@@ -285,6 +285,17 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 }
 .stepper-btn:active { background: var(--gray-200); }
 
+@keyframes flash-green {
+  0%   { background: var(--green); color: #fff; transform: scale(1.2); }
+  100% { background: transparent; color: inherit; transform: scale(1); }
+}
+@keyframes flash-red {
+  0%   { background: var(--red); color: #fff; transform: scale(1.2); }
+  100% { background: transparent; color: inherit; transform: scale(1); }
+}
+.flash-green { animation: flash-green 0.35s ease-out forwards; }
+.flash-red   { animation: flash-red   0.35s ease-out forwards; }
+
 .stepper-val {
   flex: 1;
   text-align: center;
