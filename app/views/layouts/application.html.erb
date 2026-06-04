@@ -44,7 +44,7 @@
                 <%= button_to "Sign out", session_path, method: :delete, class: "nav-dropdown-link nav-dropdown-signout" %>
               </div>
             </details>
-          <% else %>
+          <% elsif !content_for?(:suppress_auth_buttons) %>
             <%= link_to "Sign in", new_session_path, class: "btn btn-secondary btn-sm" %>
             <%= link_to "Sign up", new_registration_path, class: "btn btn-primary btn-sm" %>
           <% end %>
