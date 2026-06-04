@@ -15,7 +15,7 @@ Rails.application.routes.draw do
     resource :spawtz_setup, only: %i[new create]
     resource :membership, only: %i[create destroy], as: :join
     resources :memberships, only: %i[index update], controller: "team_memberships"
-    resources :players, only: %i[index new create destroy] do
+    resources :players, only: %i[index new create destroy edit update] do
         member { patch :claim }
       end
     resources :seasons, only: %i[show] do

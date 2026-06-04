@@ -31,6 +31,17 @@
   </div>
 <% end %>
 
+<%# ── MY PLAYER ── %>
+<% if @membership&.accepted? && @my_player %>
+  <div class="card" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+    <div style="flex:1;">
+      <div style="font-size:0.78rem;color:var(--gray-400);margin-bottom:0.1rem;">Your player</div>
+      <div style="font-weight:500;"><%= @my_player.name %></div>
+    </div>
+    <%= link_to "Edit name", edit_team_player_path(@team, @my_player), class: "btn btn-secondary btn-sm" %>
+  </div>
+<% end %>
+
 <%# ── CLAIM PLAYER PROMPT ── %>
 <% if @membership&.accepted? && @my_player.nil? && @unclaimed_players&.any? %>
   <div class="claim-prompt">

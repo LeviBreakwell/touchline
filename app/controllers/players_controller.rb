@@ -1,6 +1,6 @@
 class PlayersController < ApplicationController
   before_action :set_team
-  before_action -> { require_team_admin!(@team) }, except: :claim
+  before_action -> { require_team_admin!(@team) }, except: %i[claim edit update]
 
   def index
     @players = @team.players.order(:name)
@@ -16,6 +16,30 @@ class PlayersController < ApplicationController
       redirect_to team_players_path(@team), notice: "#{@player.name} added to roster."
     else
       render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @player = @team.players.find(params[:id])
+    unless can_edit_player?(@player)
+      redirect_to team_path(@team), alert: "Not authorised."
+    end
+  end
+
+  def update
+    @player = @team.players.find(params[:id])
+    unless can_edit_player?(@player)
+      redirect_to team_path(@team), alert: "Not authorised."
+      return
+    end
+    if @player.update(player_params)
+      if Current.user.admin_of?(@team)
+        redirect_to team_players_path(@team), notice: "#{@player.name} updated."
+      else
+        redirect_to team_path(@team), notice: "Your name has been updated to #{@player.name}."
+      end
+    else
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -48,6 +72,10 @@ class PlayersController < ApplicationController
 
   def set_team
     @team = Team.find(params[:team_id])
+  end
+
+  def can_edit_player?(player)
+    Current.user&.admin_of?(@team) || player.user_id == Current.user&.id
   end
 
   def player_params

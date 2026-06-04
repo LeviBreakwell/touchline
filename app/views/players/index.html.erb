@@ -26,6 +26,7 @@
         <button type="button" class="btn btn-secondary btn-sm"
                 onclick="navigator.clipboard.writeText(<%= "Join #{@team.name} on Touchline as #{player.name}: #{team_invite_url(@team.invite_token, player_id: player.id)}".to_json %>).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Invite', 2000) })">Invite</button>
       <% end %>
+      <%= link_to "Edit", edit_team_player_path(@team, player), class: "btn btn-secondary btn-sm" %>
       <%= button_to "Remove", team_player_path(@team, player), method: :delete,
             class: "btn btn-secondary btn-sm",
             data: { confirm: "Remove #{player.name}?" } %>
