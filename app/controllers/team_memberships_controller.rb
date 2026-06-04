@@ -26,6 +26,13 @@ class TeamMembershipsController < ApplicationController
     end
   end
 
+  def destroy
+    membership = @team.team_memberships.find(params[:id])
+    @team.players.where(user_id: membership.user_id).update_all(user_id: nil)
+    membership.destroy!
+    redirect_to team_memberships_path(@team), notice: "#{membership.user.name} has been removed from the team."
+  end
+
   private
 
   def set_team

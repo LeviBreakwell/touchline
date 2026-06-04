@@ -43,6 +43,11 @@
         <%= button_to "Make admin", team_membership_path(@team, m), method: :patch,
               params: { role: "admin" }, class: "btn btn-secondary btn-sm" %>
       <% end %>
+      <% unless m.user_id == Current.user.id %>
+        <%= button_to "Kick", team_membership_path(@team, m), method: :delete,
+              class: "btn btn-secondary btn-sm",
+              data: { turbo_confirm: "Remove #{m.user.name} from the team? Their player will be unclaimed." } %>
+      <% end %>
     </div>
   <% end %>
 <% end %>
