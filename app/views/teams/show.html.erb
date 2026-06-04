@@ -76,7 +76,7 @@
 
 <% if Current.user %>
   <% if @membership.nil? %>
-    <%= button_to "Request to join", team_membership_path(@team), method: :post, class: "btn btn-secondary btn-full", style: "margin-top:1rem;" %>
+    <%= button_to "Request to join", team_join_path(@team), method: :post, class: "btn btn-secondary btn-full", style: "margin-top:1rem;" %>
   <% elsif @membership.pending? %>
     <div class="card" style="text-align:center;margin-top:1rem;">
       <p class="card-meta">Your join request is pending — an admin will approve you shortly.</p>

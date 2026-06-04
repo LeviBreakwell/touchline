@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   resources :teams, only: %i[new create show] do
     member { patch :regenerate_invite }
     resource :spawtz_setup, only: %i[new create]
-    resource :membership, only: %i[create destroy]
+    resource :membership, only: %i[create destroy], as: :join
     resources :memberships, only: %i[index update], controller: "team_memberships"
     resources :players, only: %i[index new create destroy] do
         member { patch :claim }
