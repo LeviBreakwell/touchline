@@ -1,8 +1,24 @@
-<h1>Forgot your password?</h1>
+<% content_for :title, "Reset password – Touchline" %>
+<% content_for :suppress_auth_buttons, true %>
 
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+<div style="max-width:400px;margin:2rem auto;">
+  <h1 style="margin-bottom:0.25rem;">Forgot your password?</h1>
+  <p style="color:var(--gray-600);margin-bottom:1.5rem;">We'll email you a reset link.</p>
 
-<%= form_with url: passwords_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.submit "Email reset instructions" %>
-<% end %>
+  <% if flash[:alert] %>
+    <div class="flash alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <%= form_with url: passwords_path do |form| %>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <%= form.email_field :email_address, required: true, autofocus: true,
+            autocomplete: "username", placeholder: "Email address",
+            value: params[:email_address] %>
+      <%= form.submit "Email reset instructions", class: "btn btn-primary btn-full" %>
+    </div>
+  <% end %>
+
+  <p style="font-size:0.85rem;color:var(--gray-400);text-align:center;margin-top:1rem;">
+    Remember it? <%= link_to "Sign in", new_session_path %>
+  </p>
+</div>

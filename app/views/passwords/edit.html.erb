@@ -1,9 +1,21 @@
-<h1>Update your password</h1>
+<% content_for :title, "Set new password – Touchline" %>
+<% content_for :suppress_auth_buttons, true %>
 
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+<div style="max-width:400px;margin:2rem auto;">
+  <h1 style="margin-bottom:0.25rem;">Set new password</h1>
+  <p style="color:var(--gray-600);margin-bottom:1.5rem;">Choose a strong password for your account.</p>
 
-<%= form_with url: password_path(params[:token]), method: :put do |form| %>
-  <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Enter new password", maxlength: 72 %><br>
-  <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat new password", maxlength: 72 %><br>
-  <%= form.submit "Save" %>
-<% end %>
+  <% if flash[:alert] %>
+    <div class="flash alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <%= form_with url: password_path(params[:token]), method: :put do |form| %>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <%= form.password_field :password, required: true, autocomplete: "new-password",
+            placeholder: "New password", maxlength: 72 %>
+      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password",
+            placeholder: "Confirm new password", maxlength: 72 %>
+      <%= form.submit "Save password", class: "btn btn-primary btn-full" %>
+    </div>
+  <% end %>
+</div>
