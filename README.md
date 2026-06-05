@@ -1,4 +1,4 @@
-# Try Tally
+# Touchline
 
 A free Rails app for TRL (Touch Rugby League) teams to track player tries and assists across a season, with fixtures and results synced automatically from TRL Australia's Spawtz platform.
 
