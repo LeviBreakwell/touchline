@@ -43,13 +43,49 @@
 
     <div class="landing-hero">
       <div class="landing-eyebrow">Touchline</div>
-      <h1 class="landing-headline">Know who's running hot this season.</h1>
-      <p class="landing-sub">Tries and assists tracked for every player. Fixtures pulled straight from TRL Australia. No spreadsheets, no chasing the scorer.</p>
+      <h1 class="landing-headline">Track your TRL career.</h1>
+      <p class="landing-sub">Every game, every try, every assist — season after season. Fixtures pulled straight from TRL Australia.</p>
       <div class="landing-cta">
         <%= link_to "Sign up free", new_registration_path, class: "btn btn-primary btn-landing" %>
         <span class="landing-cta-or">Already on a team?</span>
         <%= link_to "Sign in", new_session_path, class: "landing-signin-link" %>
       </div>
+    </div>
+
+
+    <div class="landing-shots">
+      <figure class="landing-shot">
+        <div class="phone">
+          <%= image_tag "screen-leaderboard.jpg", width: 500, height: 707,
+                alt: "The Touchline season leaderboard, ranking ten players by points with games, tries and assists alongside." %>
+        </div>
+        <figcaption>
+          <strong>Season leaderboard</strong>
+          Every player ranked by points. Filter by season or go all time.
+        </figcaption>
+      </figure>
+
+      <figure class="landing-shot">
+        <div class="phone">
+          <%= image_tag "screen-entry.jpg", width: 500, height: 707, loading: "lazy",
+                alt: "Recording stats after a game: each player has a tick for whether they played and plus and minus buttons for tries and assists." %>
+        </div>
+        <figcaption>
+          <strong>Two-minute stat entry</strong>
+          Tick who played, tap in tries and assists. Totals update as you go.
+        </figcaption>
+      </figure>
+
+      <figure class="landing-shot">
+        <div class="phone">
+          <%= image_tag "screen-career.jpg", width: 500, height: 707, loading: "lazy",
+                alt: "A player's career page showing points, tries, assists, games, seasons and points per game." %>
+        </div>
+        <figcaption>
+          <strong>Your career</strong>
+          Totals and averages across every season you've played.
+        </figcaption>
+      </figure>
     </div>
 
     <div class="landing-features">
@@ -62,13 +98,19 @@
       <div class="landing-feature">
         <div>
           <div class="landing-feature-title">Enter stats after the final whistle</div>
-          <div class="landing-feature-body">Any team member can tap in tries and assists on their phone. Takes two minutes.</div>
+          <div class="landing-feature-body">Any team member taps in who played, plus tries and assists, on their phone. Takes two minutes.</div>
         </div>
       </div>
       <div class="landing-feature">
         <div>
           <div class="landing-feature-title">Season leaderboard</div>
-          <div class="landing-feature-body">Points tally updates after every game. See who's topping the table and settle the pub debate once and for all.</div>
+          <div class="landing-feature-body">Points tally updates after every game. Filter by season or go all-time, and settle the pub debate once and for all.</div>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div>
+          <div class="landing-feature-title">Career stats</div>
+          <div class="landing-feature-body">Games played, tries, assists and points across every season you've turned out. Averages per game and per season, on your own profile.</div>
         </div>
       </div>
     </div>

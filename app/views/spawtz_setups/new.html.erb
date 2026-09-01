@@ -1,8 +1,6 @@
 <% content_for :title, "Link TRL Australia – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button @team.name, team_path(@team) %>
 <h1>Link to TRL Australia</h1>
 <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
   Go to <strong>trl.com.au</strong>, find your competition under Locations &rarr; League, and copy the IDs from the URL.<br>

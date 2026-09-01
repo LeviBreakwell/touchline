@@ -8,6 +8,8 @@
 !/log/.keep
 !/tmp/.keep
 !/tmp/pids/
+/tmp/pids/*
+!/tmp/pids/.keep
 
 # Local storage (uploaded files, etc.)
 /storage/*

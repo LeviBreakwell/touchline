@@ -1,8 +1,6 @@
 <% content_for :title, "#{@season.name} – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button @team.name, team_path(@team) %>
 <div class="section-header" style="margin-bottom:1.25rem;">
   <div>
     <h1><%= @season.name %></h1>
@@ -28,31 +26,10 @@
 <% end %>
 
 <%# ── LEADERBOARD ── %>
-<% any_stats = @leaderboard.any? { |r| r[:points] > 0 } %>
+<% any_stats = @leaderboard.any? %>
 <% if any_stats %>
   <div class="card" style="padding:0;margin-bottom:1.25rem;">
-    <table class="leaderboard">
-      <thead>
-        <tr>
-          <th class="rank">#</th>
-          <th>Player</th>
-          <th style="text-align:right;">T</th>
-          <th style="text-align:right;">A</th>
-          <th style="text-align:right;" class="points">Pts</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @leaderboard.each_with_index do |row, i| %>
-          <tr>
-            <td class="rank"><%= i + 1 %></td>
-            <td><%= row[:player].name %></td>
-            <td style="text-align:right;"><%= row[:tries] %></td>
-            <td style="text-align:right;"><%= row[:assists] %></td>
-            <td style="text-align:right;" class="points"><%= row[:points] %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+    <%= render "shared/leaderboard", rows: @leaderboard, team: @team %>
   </div>
 <% end %>
 
@@ -67,11 +44,26 @@
         <div class="opponent">vs <%= fixture.opponent_name %></div>
         <div class="date"><%= fixture.date&.strftime("%a %-d %b · %-I:%M%P") %></div>
       </div>
-      <% if fixture.played? %>
-        <div class="fixture-score"><%= fixture.our_score %> – <%= fixture.opponent_score %></div>
-        <span class="badge badge-<%= fixture.result %>"><%= fixture.result.upcase %></span>
-      <% else %>
-        <span class="badge badge-tbd">TBD</span>
+      <div class="fixture-status">
+        <% if fixture.played? %>
+          <div class="fixture-score"><%= fixture.our_score %> – <%= fixture.opponent_score %></div>
+          <span class="badge badge-<%= fixture.result %>"><%= fixture.result.upcase %></span>
+        <% else %>
+          <span class="badge badge-tbd">TBD</span>
+        <% end %>
+        <% unless fixture.stats_status == :verified %><%= trl_status_badge(fixture) %><% end %>
+      </div>
+      <% scorers = fixture_scorers(fixture) %>
+      <% if scorers.any? %>
+        <div class="fixture-scorers">
+          <% scorers.each do |stat| %>
+            <span class="scorer">
+              <span class="scorer-name"><%= stat.player.name %></span>
+              <%= stat_tally(stat.tries, :tries) %>
+              <%= stat_tally(stat.assists, :assists) %>
+            </span>
+          <% end %>
+        </div>
       <% end %>
     <% end %>
   <% end %>

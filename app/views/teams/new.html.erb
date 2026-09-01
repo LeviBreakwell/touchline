@@ -1,8 +1,6 @@
 <% content_for :title, "#{@team_name} – Touchline" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← Back", :back, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button "Back", :back %>
 
 <% if @existing_team %>
   <h1>Join <%= @team_name %></h1>

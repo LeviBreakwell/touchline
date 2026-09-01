@@ -40,6 +40,7 @@
                 <div class="user-dropdown-name"><%= Current.user.name %></div>
                 <div class="user-dropdown-email"><%= Current.user.email_address %></div>
                 <div class="nav-dropdown-divider" style="margin-top:0.4rem;"></div>
+                <%= link_to "My Profile", profile_path, class: "nav-dropdown-link" %>
                 <%= link_to "My Teams", _home_path, class: "nav-dropdown-link" %>
                 <%= link_to "Find a team on TRL", trl_locations_path, class: "nav-dropdown-link" %>
                 <div class="nav-dropdown-divider"></div>

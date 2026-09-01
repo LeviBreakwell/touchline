@@ -4,7 +4,10 @@ class SeasonsController < ApplicationController
 
   def show
     @season = @team.seasons.find(params[:id])
-    @fixtures = @season.fixtures.order(date: :desc)
+    # game_stats is preloaded for trl_status_badge, which needs to know whether
+    # a sheet exists at all before it says anything about it; the players ride
+    # along for the scorer tallies on each card.
+    @fixtures = @season.fixtures.includes(game_stats: :player).order(date: :desc)
 
     # Most recent played fixture that has no game_stats entered yet
     @next_to_record = @season.fixtures
@@ -14,22 +17,7 @@ class SeasonsController < ApplicationController
       .order(date: :desc)
       .first
 
-    stats_by_player = GameStat
-      .joins(:fixture)
-      .where(fixtures: { season_id: @season.id })
-      .group(:player_id)
-      .select("player_id, SUM(tries) AS season_tries, SUM(assists) AS season_assists, COUNT(*) AS season_games")
-      .index_by(&:player_id)
-
-    @leaderboard = @team.players
-      .order(:name)
-      .map { |p|
-        s = stats_by_player[p.id]
-        tries   = s&.season_tries.to_i
-        assists = s&.season_assists.to_i
-        { player: p, tries: tries, assists: assists, points: (tries * 2) + assists, games: s&.season_games.to_i }
-      }
-      .sort_by { |r| [-r[:points], -r[:tries], -r[:assists]] }
+    @leaderboard = Leaderboard.for(@team, season: @season)
   end
 
   private

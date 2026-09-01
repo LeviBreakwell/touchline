@@ -1,0 +1,70 @@
+<% content_for :title, "Profile – Touchline" %>
+
+<div class="section-header" style="margin-bottom:1rem;">
+  <div>
+    <h1><%= @user.name %></h1>
+    <p class="card-meta">
+      <%= @user.email_address %> · Joined <%= @user.created_at.strftime("%B %Y") %>
+    </p>
+  </div>
+</div>
+
+<h2 style="margin-bottom:0.5rem;">Career</h2>
+<div class="stat-grid">
+  <div class="stat-tile">
+    <div class="stat-tile-value accent"><%= @career.points %></div>
+    <div class="stat-tile-label">Points</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= @career.tries %></div>
+    <div class="stat-tile-label">Tries</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= @career.assists %></div>
+    <div class="stat-tile-label">Assists</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= @career.games %></div>
+    <div class="stat-tile-label">Games</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= @career.seasons %></div>
+    <div class="stat-tile-label">Seasons</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= @career.points_per_game %></div>
+    <div class="stat-tile-label">Pts / game</div>
+  </div>
+</div>
+
+<% if @career.any? %>
+  <div class="card">
+    <dl style="margin:0;">
+      <div class="average-row"><dt>Tries per game</dt><dd><%= @career.tries_per_game %></dd></div>
+      <div class="average-row"><dt>Assists per game</dt><dd><%= @career.assists_per_game %></dd></div>
+      <div class="average-row"><dt>Points per season</dt><dd><%= @career.points_per_season %></dd></div>
+    </dl>
+  </div>
+<% end %>
+
+<h2 style="margin-top:1.25rem;margin-bottom:0.5rem;">Your players</h2>
+<% if @players.empty? %>
+  <div class="empty">
+    <p>You're not linked to a player on any team yet.</p>
+    <p class="card-meta">Open your team and tap your name on the roster to link up.</p>
+  </div>
+<% else %>
+  <% @players.each do |player| %>
+    <% line = player.career_stats %>
+    <%= link_to team_player_path(player.team, player), class: "card", style: "display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;" do %>
+      <div style="flex:1;min-width:0;">
+        <div class="card-title"><%= player.team.name %></div>
+        <div class="card-meta"><%= player.name %> · <%= line.games %> games</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:700;color:var(--green-dark);"><%= line.points %> pts</div>
+        <div class="card-meta"><%= line.tries %>T · <%= line.assists %>A</div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

@@ -24,6 +24,8 @@ class SpawtzScraper
     doc = Nokogiri::HTML(URI.open(url, "User-Agent" => USER_AGENT))
     season = find_or_create_season(doc)
 
+    seen_ids = []
+
     doc.css("table tr").each do |row|
       cells = row.css("td")
       next if cells.size < 5
@@ -39,19 +41,68 @@ class SpawtzScraper
 
       our_score, opponent_score = parse_result(result_str)
 
-      fixture = season.fixtures.find_or_initialize_by(date: date)
+      fixture = match_fixture(season, date, opponent, seen_ids)
       fixture.assign_attributes(
+        date: date,
         opponent_name: opponent,
         our_score: our_score,
         opponent_score: opponent_score
       )
       fixture.save!
+      seen_ids << fixture.id
+
+      # A result landing can confirm a sheet entered days earlier — or reveal
+      # that it overruns what TRL actually recorded.
+      fixture.refresh_stats_verification!
     end
+
+    prune_withdrawn(season, seen_ids)
   rescue OpenURI::HTTPError, SocketError => e
     Rails.logger.error("SpawtzScraper#sync_fixtures failed for team #{@team.id}: #{e.message}")
   end
 
   private
+
+  # Spawtz publishes no per-match id — the fixture rows carry no link we could
+  # key on — so a fixture's identity has to be reconstructed from the draw each
+  # time. Exact kickoff first, then "same day, same opponent", which is what a
+  # reschedule looks like: TRL republishes the whole round and every kickoff
+  # shifts by a few minutes. Without that fallback a moved time reads as a brand
+  # new fixture and the original is stranded as a same-day duplicate — which is
+  # exactly how six ghost fixtures accumulated in the 2026 Winter season.
+  #
+  # Skipping ids already claimed by this scrape keeps a genuine double-header
+  # honest: the second row can only match the fixture the first one didn't take.
+  def match_fixture(season, date, opponent, seen_ids)
+    scope = season.fixtures.where.not(id: seen_ids)
+
+    scope.find_by(date: date) ||
+      scope.where(opponent_name: opponent, date: date.all_day).order(:date).first ||
+      season.fixtures.new
+  end
+
+  # The draw is the source of truth, so a fixture TRL has dropped should go too.
+  # Two guards keep that from eating real data: a scrape that parsed no rows at
+  # all (page moved, season rolled, HTML changed shape) must never be read as
+  # "TRL cancelled everything", and anything already carrying a score or a stat
+  # sheet is left alone regardless — a half-parsed page must not be able to
+  # destroy entered stats. A stranded fixture with stats on it is a duplicate a
+  # human should look at, not one we should silently delete.
+  def prune_withdrawn(season, seen_ids)
+    return if seen_ids.empty?
+
+    season.fixtures
+          .where.not(id: seen_ids)
+          .where(our_score: nil, opponent_score: nil)
+          .where.missing(:game_stats)
+          .find_each do |fixture|
+      Rails.logger.info(
+        "SpawtzScraper: pruning fixture #{fixture.id} (#{fixture.date} v #{fixture.opponent_name}) " \
+        "— no longer in the TRL draw for team #{@team.id}"
+      )
+      fixture.destroy!
+    end
+  end
 
   def refresh_season_if_changed
     return if @team.trl_location_slug.blank?

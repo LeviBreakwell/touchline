@@ -1,8 +1,6 @@
 <% content_for :title, "Add Player – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← Roster", team_players_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button "Roster", team_players_path(@team) %>
 <h1>Add player</h1>
 
 <div style="max-width:400px;margin-top:1rem;">
@@ -13,6 +11,11 @@
     <div class="form-group">
       <%= f.label :name, "Name" %>
       <%= f.text_field :name, autofocus: true, placeholder: "e.g. Damo or Tom H" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :email, "Email (optional)" %>
+      <%= f.email_field :email, placeholder: "them@example.com", autocomplete: "off" %>
+      <p class="field-hint">If they sign up with this address, they'll be linked to this player and added to the team automatically.</p>
     </div>
     <%= f.submit "Add to roster", class: "btn btn-primary btn-full" %>
   <% end %>

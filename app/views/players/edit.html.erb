@@ -1,12 +1,10 @@
 <% content_for :title, "Edit #{@player.name} – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <% if Current.user&.admin_of?(@team) %>
-    <%= link_to "← Roster", team_players_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-  <% else %>
-    <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-  <% end %>
-</div>
+<% if Current.user&.admin_of?(@team) %>
+  <%= back_button "Roster", team_players_path(@team) %>
+<% else %>
+  <%= back_button @team.name, team_path(@team) %>
+<% end %>
 <h1>Edit player name</h1>
 
 <div style="max-width:400px;margin-top:1rem;">

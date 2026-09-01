@@ -3,26 +3,13 @@ class GameStatsController < ApplicationController
   before_action -> { require_team_member!(@team) }
 
   def bulk
-    ActiveRecord::Base.transaction do
-      bulk_stat_params.each do |sp|
-        stat = @fixture.game_stats.find_or_initialize_by(player_id: sp[:player_id])
-        stat.update!(tries: sp[:tries].to_i, assists: sp[:assists].to_i)
-      end
+    sheet = StatSheet.new(@fixture, bulk_stat_params)
+
+    if sheet.save
+      redirect_to team_season_fixture_path(@team, @season, @fixture), notice: notice_for(@fixture)
+    else
+      render_sheet(sheet)
     end
-    redirect_to team_season_fixture_path(@team, @season, @fixture), notice: "Stats saved."
-  end
-
-  def create
-    @game_stat = @fixture.game_stats.find_or_initialize_by(player_id: game_stat_params[:player_id])
-    @game_stat.assign_attributes(game_stat_params)
-    @game_stat.save!
-    redirect_to team_season_fixture_path(@team, @season, @fixture), notice: "Stats saved."
-  end
-
-  def update
-    @game_stat = @fixture.game_stats.find(params[:id])
-    @game_stat.update!(game_stat_params)
-    redirect_to team_season_fixture_path(@team, @season, @fixture), notice: "Stats updated."
   end
 
   private
@@ -35,11 +22,25 @@ class GameStatsController < ApplicationController
 
   def bulk_stat_params
     (params[:game_stats] || {}).values.map do |sp|
-      sp.permit(:player_id, :tries, :assists)
+      sp.permit(:player_id, :tries, :assists, :played)
     end
   end
 
-  def game_stat_params
-    params.require(:game_stat).permit(:player_id, :tries, :assists)
+  def notice_for(fixture)
+    if fixture.stats_verified?
+      "Stats saved."
+    else
+      "Stats saved and counted. TRL hasn't published this result yet to check them against."
+    end
+  end
+
+  # A rejected sheet is handed straight back with the Member's own numbers in
+  # it, so nothing they typed is lost to the error.
+  def render_sheet(sheet)
+    @players = @team.players.order(:name)
+    @game_stats = @fixture.game_stats.index_by(&:player_id).merge(sheet.stats)
+    @is_member = true
+    flash.now[:alert] = sheet.error
+    render "fixtures/show", status: :unprocessable_entity
   end
 end

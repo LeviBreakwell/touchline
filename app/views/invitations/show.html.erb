@@ -18,19 +18,7 @@
       <div style="padding:0.75rem 1rem 0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-400);">
         <%= @current_season&.name %> standings
       </div>
-      <table class="leaderboard">
-        <tbody>
-          <% @leaderboard.each_with_index do |row, i| %>
-            <tr>
-              <td class="rank"><%= i + 1 %></td>
-              <td><%= row[:name] %></td>
-              <td style="text-align:right;color:var(--gray-600);"><%= row[:tries] %>T</td>
-              <td style="text-align:right;color:var(--gray-600);"><%= row[:assists] %>A</td>
-              <td style="text-align:right;" class="points"><%= row[:points] %> pts</td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <%= render "shared/leaderboard", rows: @leaderboard, team: @team %>
     </div>
   <% end %>
 

@@ -1,25 +1,30 @@
 <% content_for :title, "Roster – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button @team.name, team_path(@team) %>
+<div data-controller="dialog" data-dialog-open-value="<%= @player&.errors&.any? || false %>">
 <div class="section-header">
   <h1>Roster</h1>
-  <%= link_to "Add player", new_team_player_path(@team), class: "btn btn-primary btn-sm" %>
+  <%= link_to "Add player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
+        data: { action: "dialog#open" } %>
 </div>
 
 <% if @players.empty? %>
   <div class="empty">
     <p>No players yet.</p>
-    <%= link_to "Add first player", new_team_player_path(@team), class: "btn btn-primary btn-sm" %>
+    <%= link_to "Add first player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
+          data: { action: "dialog#open" } %>
   </div>
 <% else %>
   <% @players.each do |player| %>
     <div class="card" style="display:flex;align-items:center;gap:0.5rem;">
       <div style="flex:1;">
-        <div style="font-weight:500;"><%= player.name %></div>
+        <div style="font-weight:500;">
+          <%= link_to player.name, team_player_path(@team, player), class: "leaderboard-player" %>
+        </div>
         <% if player.user %>
           <div style="font-size:0.78rem;color:var(--gray-400);">Claimed</div>
+        <% elsif player.email.present? %>
+          <div style="font-size:0.78rem;color:var(--gray-400);">Links up when <%= player.email %> signs up</div>
         <% end %>
       </div>
       <% unless player.user %>
@@ -39,3 +44,6 @@
     </div>
   <% end %>
 <% end %>
+
+<%= render "players/add_player_dialog", team: @team, player: @player || Player.new %>
+</div>

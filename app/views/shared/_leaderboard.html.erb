@@ -1,0 +1,29 @@
+<%# rows: array of Leaderboard::Row, team: the Team they belong to %>
+<table class="leaderboard">
+  <thead>
+    <tr>
+      <th class="rank">#</th>
+      <th class="move-col"><span class="sr-only">Movement since last game</span></th>
+      <th>Player</th>
+      <th style="text-align:right;">G</th>
+      <th style="text-align:right;">T</th>
+      <th style="text-align:right;">A</th>
+      <th style="text-align:right;" class="points">Pts</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% rows.each_with_index do |row, i| %>
+      <tr>
+        <td class="rank"><%= i + 1 %></td>
+        <td class="move-col"><%= rank_movement(row) %></td>
+        <td>
+          <%= link_to row.player.name, team_player_path(team, row.player), class: "leaderboard-player" %><%= hot_streak_flame(row) %>
+        </td>
+        <td style="text-align:right;color:var(--gray-400);"><%= row.games %></td>
+        <td style="text-align:right;color:var(--gray-600);"><%= row.tries %></td>
+        <td style="text-align:right;color:var(--gray-600);"><%= row.assists %></td>
+        <td style="text-align:right;" class="points"><%= row.points %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

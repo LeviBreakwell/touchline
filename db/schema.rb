@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_04_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_30_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,8 +23,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_04_000001) do
     t.string "spawtz_fixture_id"
     t.integer "our_score"
     t.integer "opponent_score"
+    t.boolean "stats_verified", default: false, null: false
     t.index ["season_id"], name: "index_fixtures_on_season_id"
     t.index ["spawtz_fixture_id"], name: "index_fixtures_on_spawtz_fixture_id"
+    t.index ["stats_verified"], name: "index_fixtures_on_stats_verified"
   end
 
   create_table "game_stats", force: :cascade do |t|
@@ -34,6 +36,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_04_000001) do
     t.integer "assists", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "played", default: true, null: false
     t.index ["fixture_id", "player_id"], name: "index_game_stats_on_fixture_id_and_player_id", unique: true
     t.index ["fixture_id"], name: "index_game_stats_on_fixture_id"
     t.index ["player_id"], name: "index_game_stats_on_player_id"
@@ -45,6 +48,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_04_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name", null: false
+    t.string "email"
+    t.index ["email"], name: "index_players_on_email"
     t.index ["team_id"], name: "index_players_on_team_id"
     t.index ["user_id"], name: "index_players_on_user_id"
   end

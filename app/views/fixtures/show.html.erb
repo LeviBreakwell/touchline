@@ -1,8 +1,6 @@
 <% content_for :title, "vs #{@fixture.opponent_name} – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← #{@season.name}", team_season_path(@team, @season), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button @season.name, team_season_path(@team, @season) %>
 
 <div class="section-header" style="margin-bottom:1rem;">
   <div>
@@ -13,9 +11,13 @@
     <div style="text-align:right;">
       <div style="font-size:1.5rem;font-weight:700;line-height:1.1;"><%= @fixture.our_score %> – <%= @fixture.opponent_score %></div>
       <span class="badge badge-<%= @fixture.result %>"><%= @fixture.result.upcase %></span>
+      <%= trl_status_badge(@fixture) %>
     </div>
   <% else %>
-    <span class="badge badge-tbd">Upcoming</span>
+    <div style="text-align:right;">
+      <span class="badge badge-tbd">Upcoming</span>
+      <%= trl_status_badge(@fixture) %>
+    </div>
   <% end %>
 </div>
 
@@ -30,24 +32,55 @@
   <% if @is_member %>
     <%= form_with url: bulk_team_season_fixture_game_stats_path(@team, @season, @fixture),
                   method: :post,
-                  data: { controller: "stat-total" } do |f| %>
+                  data: { controller: "stat-total", stat_total_official_value: @fixture.official_tries } do |f| %>
 
+      <p class="stat-hint">Tick everyone who took the field — appearances feed each player&rsquo;s averages.</p>
+
+      <% if @fixture.official_tries %>
+        <p class="stat-hint stat-hint--trl" data-stat-total-target="capNotice">
+          TRL scored this game <%= @fixture.our_score %>&ndash;<%= @fixture.opponent_score %>, so the roster shares
+          <strong><%= @fixture.official_tries %></strong> <%= "try".pluralize(@fixture.official_tries) %>
+          and at most <%= @fixture.official_tries %> <%= "assist".pluralize(@fixture.official_tries) %>.
+        </p>
+      <% else %>
+        <p class="stat-hint stat-hint--trl">
+          TRL hasn&rsquo;t published this result yet, so there&rsquo;s no ceiling to enter against.
+          Whatever you record counts straight away and gets checked when the result lands.
+        </p>
+      <% end %>
+
+      <%# Pinned under the header: on a phone the roster scrolls past, and the
+          running total is what says how much of TRL's score is still unspent. %>
       <div class="stat-total-bar">
-        <span style="font-size:0.8rem;color:var(--gray-400);">Team total</span>
+        <span class="stat-total-label">Team total</span>
         <span class="stat-total-value" data-stat-total-target="total">
           <%
+            played_count  = @game_stats.values.count(&:played)
             total_tries   = @game_stats.values.sum(&:tries)
             total_assists = @game_stats.values.sum(&:assists)
             total_points  = (total_tries * 2) + total_assists
+            cap           = @fixture.official_tries
           %>
-          <%= total_tries %>T · <%= total_assists %>A · <%= total_points %> pts
+          <%= played_count %> played ·
+          <%= total_tries %><%= "/#{cap}" if cap %>T ·
+          <%= total_assists %><%= "/#{cap}" if cap %>A ·
+          <%= total_points %> pts
         </span>
       </div>
 
       <div class="card" style="padding:0.5rem 1rem;margin-bottom:0.75rem;">
         <% @players.each_with_index do |player, i| %>
           <% stat = @game_stats[player.id] %>
-          <div class="stat-row">
+          <% played = stat ? stat.played : true %>
+          <div class="stat-row<%= " stat-row--out" unless played %>">
+            <label class="played-toggle" title="Played">
+              <input type="hidden" name="game_stats[<%= i %>][played]" value="0">
+              <input type="checkbox" name="game_stats[<%= i %>][played]" value="1"
+                     data-field="played" <%= "checked" if played %>
+                     data-action="change->stat-total#togglePlayed">
+              <span class="played-toggle-box" aria-hidden="true">&check;</span>
+            </label>
+
             <div class="stat-player-info">
               <div class="stat-player-name"><%= player.name %></div>
               <div class="stat-player-pts" data-pts><%= stat ? (stat.tries * 2 + stat.assists) : 0 %> pts</div>
@@ -89,9 +122,11 @@
       <div class="card" style="padding:0.5rem 1rem;">
         <% @players.each do |player| %>
           <% stat = @game_stats[player.id] %>
-          <div class="stat-row">
+          <% missed = stat && !stat.played %>
+          <div class="stat-row<%= " stat-row--out" if missed %>">
             <div class="stat-player-info">
-              <div class="stat-player-name"><%= player.name %></div>
+              <div class="stat-player-name"><%= link_to player.name, team_player_path(@team, player), class: "leaderboard-player" %></div>
+              <% if missed %><div class="stat-dnp">Did not play</div><% end %>
             </div>
             <div class="stat-readonly">
               <div class="stat-readonly-item"><span class="stepper-label">T</span> <strong><%= stat&.tries || 0 %></strong></div>

@@ -11,9 +11,11 @@
   --gray-600: #adbac7;
   --gray-800: #e6edf3;
   --red: #f85149;
+  --flame: #fb923c;
   --white: #161b22;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 8px;
+  --header-height: 52px;
   --shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
@@ -39,7 +41,7 @@ body {
   max-width: 640px;
   margin: 0 auto;
   padding: 0 1rem;
-  height: 52px;
+  height: var(--header-height);
   display: flex;
   align-items: center;
 }
@@ -223,6 +225,8 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .badge-tbd   { background: var(--gray-100); color: var(--gray-400); }
 .badge-pending  { background: #2d1e00; color: #fbbf24; }
 .badge-admin    { background: var(--green-light); color: var(--green-dark); }
+.badge-verified { background: var(--green-light); color: var(--green-dark); }
+.badge-over     { background: #2d1414; color: var(--red); }
 
 /* LEADERBOARD TABLE */
 .leaderboard { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -232,6 +236,15 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .leaderboard .rank { font-weight: 700; color: var(--gray-400); width: 1.5rem; }
 .leaderboard .points { font-weight: 700; color: var(--green-dark); }
 .leaderboard tr:first-child .rank { color: var(--green); }
+.leaderboard .move-col { width: 2.1rem; padding-left: 0; padding-right: 0; }
+.move { display: inline-flex; align-items: center; gap: 0.1rem; font-size: 0.72rem; font-weight: 700; line-height: 1; color: var(--gray-400); }
+.move-up { color: var(--green); }
+.move-down { color: var(--red); }
+.flame { display: inline-flex; vertical-align: -0.12em; margin-left: 0.3rem; color: var(--flame); }
+
+/* Labels a column that carries only an icon, for anyone reading by screen
+   reader rather than by shape. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* STAT ENTRY */
 .stat-row {
@@ -245,7 +258,7 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .stat-row:last-child { border-bottom: none; }
 
 .stat-player-info { flex: 1; min-width: 0; }
-.stat-player-name { font-size: 0.95rem; font-weight: 500; }
+.stat-player-name { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
 .stat-player-pts  { font-size: 0.78rem; color: var(--green-dark); font-weight: 600; margin-top: 0.1rem; }
 
 /* D-PAD STEPPERS */
@@ -334,12 +347,23 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .fixture-nav-link:hover { color: var(--gray-800); }
 
 /* FIXTURE CARD */
-.fixture-card { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit; }
+.fixture-card { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit; }
 .fixture-card:hover { background: var(--gray-50); }
 .fixture-vs { flex: 1; }
 .fixture-vs .opponent { font-weight: 600; }
 .fixture-vs .date { font-size: 0.8rem; color: var(--gray-600); }
 .fixture-score { font-size: 1.1rem; font-weight: 700; text-align: right; white-space: nowrap; }
+.fixture-status { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+
+/* Who scored, under the scoreline. flex-basis 100% breaks it onto its own row
+   inside the card's wrapping flex box, so the vs/score line above is untouched. */
+.fixture-scorers { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0.4rem 1.15rem; padding-top: 0.6rem; border-top: 1px solid var(--gray-100); font-size: 0.8rem; }
+.scorer { display: inline-flex; align-items: center; gap: 0.25rem; }
+.scorer-name { color: var(--gray-600); }
+.tally { display: inline-flex; align-items: center; gap: 0.05rem; line-height: 0; }
+.tally-tries { color: var(--green); }
+.tally-assists { color: var(--gray-400); }
+.tally-count { font-size: 0.7rem; font-weight: 700; line-height: 1; margin-left: 0.15rem; }
 
 /* RECORD PROMPT — prominent "enter stats" card on season page */
 .record-prompt {
@@ -386,19 +410,37 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 }
 .claim-btn:hover { background: var(--gray-100); }
 
-/* STAT TOTAL BAR */
+/* STAT TOTAL BAR
+   Sits directly above the roster and stays under the site header while the
+   list scrolls, so the running total is on screen for the player you are
+   actually tapping. Bleeds to the container edges so nothing shows beside it
+   once it is stuck. */
 .stat-total-bar {
+  position: sticky;
+  /* the header's height is its inner row plus its 1px bottom border */
+  top: calc(var(--header-height) + 1px);
+  z-index: 90;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.6rem 0;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  margin: 0 -1rem 0.5rem;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
 }
+.stat-total-label { font-size: 0.8rem; color: var(--gray-400); }
 .stat-total-value {
   font-weight: 700;
   font-size: 1rem;
   color: var(--green-dark);
 }
+/* The sheet already claims more than TRL published — it will not save. */
+.stat-total-value--over { color: var(--red); }
+
+/* PENDING TRL NOTE */
+.pending-note { font-size: 0.85rem; color: var(--gray-600); border-left: 3px solid #fbbf24; }
+.pending-note strong { color: var(--gray-800); }
 
 /* EMPTY STATE */
 .empty { text-align: center; padding: 2rem 1rem; color: var(--gray-400); }
@@ -505,4 +547,271 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
   color: var(--gray-400);
   text-align: center;
   padding-bottom: 2rem;
+}
+
+/* SEASON FILTER CHIPS */
+.filter-chips {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.chip:hover { background: var(--gray-200); color: var(--gray-800); }
+.chip-active {
+  background: var(--green-light);
+  border-color: var(--green-dark);
+  color: var(--green-dark);
+  font-weight: 600;
+}
+
+.leaderboard-player { color: var(--gray-800); text-decoration: none; }
+.leaderboard-player:hover { color: var(--green-dark); }
+
+/* PLAYED TOGGLE (stat entry) */
+.played-toggle { margin: 0; flex-shrink: 0; cursor: pointer; display: block; }
+.played-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.played-toggle-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid var(--gray-200);
+  background: var(--gray-100);
+  color: transparent;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.played-toggle input:checked + .played-toggle-box {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.played-toggle input:focus-visible + .played-toggle-box { box-shadow: 0 0 0 2px rgba(34,197,94,0.4); }
+
+.stat-row--out .stat-player-name { color: var(--gray-400); text-decoration: line-through; }
+.stat-row--out .stat-steppers { opacity: 0.35; }
+.stat-dnp { font-size: 0.78rem; color: var(--gray-400); margin-top: 0.1rem; }
+
+.stat-hint { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.5rem; }
+.stat-hint--trl { color: var(--gray-600); }
+.stat-hint--trl strong { color: var(--gray-800); }
+
+/* STAT TILES (player + profile pages) */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+@media (min-width: 560px) {
+  .stat-grid { grid-template-columns: repeat(6, 1fr); }
+}
+.stat-tile {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.7rem 0.5rem;
+  text-align: center;
+}
+.stat-tile-value { font-size: 1.35rem; font-weight: 700; line-height: 1.1; }
+.stat-tile-value.accent { color: var(--green-dark); }
+.stat-tile-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
+  margin-top: 0.15rem;
+}
+
+.average-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 0.9rem;
+}
+.average-row:last-child { border-bottom: none; }
+.average-row dt { color: var(--gray-600); }
+.average-row dd { font-weight: 600; }
+
+.season-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.season-table th { text-align: right; padding: 0.5rem; color: var(--gray-600); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--gray-200); }
+.season-table th:first-child { text-align: left; }
+.season-table td { padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--gray-100); text-align: right; }
+.season-table td:first-child { text-align: left; }
+.season-table tr:last-child td { border-bottom: none; }
+.season-table .points { font-weight: 700; color: var(--green-dark); }
+.season-table a { color: var(--gray-800); text-decoration: none; }
+
+/* BACK BUTTON — thumb-sized, this app lives on a phone */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 1rem 0.5rem 0.7rem;
+  margin-bottom: 0.75rem;
+  border-radius: 999px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-back:hover { background: var(--gray-200); color: var(--gray-800); }
+.btn-back:active { background: var(--gray-200); transform: scale(0.97); }
+.btn-back svg { flex-shrink: 0; }
+.btn-back span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* LANDING SCREENSHOTS */
+.landing-shots {
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2.5rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.landing-shots::-webkit-scrollbar { display: none; }
+
+.landing-shot {
+  flex: 0 0 auto;
+  width: 190px;
+  scroll-snap-align: center;
+  margin: 0;
+}
+.phone {
+  border-radius: 20px;
+  padding: 5px;
+  background: linear-gradient(155deg, var(--gray-200), var(--gray-100));
+  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+}
+.phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 15px;
+}
+.landing-shot figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--gray-600);
+}
+.landing-shot figcaption strong {
+  display: block;
+  color: var(--gray-800);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.1rem;
+}
+
+/* MODAL — a bottom sheet on a phone, a centred panel on a wider screen */
+.modal {
+  /* the global reset zeroes margin, which is what centres a modal dialog */
+  margin: auto;
+  border: none;
+  padding: 0;
+  background: transparent;
+  width: 420px;
+  max-width: 92vw;
+  color: var(--gray-800);
+}
+.modal::backdrop { background: rgba(0, 0, 0, 0.72); }
+.modal-panel {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 1.15rem 1.15rem 1.35rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.modal-head h2 { margin: 0; }
+.modal-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-close:hover { background: var(--gray-200); color: var(--gray-800); }
+
+.field-hint { font-size: 0.78rem; color: var(--gray-400); margin-top: 0.35rem; line-height: 1.4; }
+
+@media (max-width: 520px) {
+  .modal { width: 100%; max-width: 100%; margin: auto auto 0; }
+  .modal-panel {
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    padding-bottom: calc(1.35rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* STEPPER AT TRL'S CEILING */
+.stepper-btn--spent { opacity: 0.3; }
+
+@keyframes stepper-refuse {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  45%      { transform: translateX(4px); }
+  70%      { transform: translateX(-2px); }
+}
+.stepper--refused {
+  box-shadow: inset 0 0 0 2px var(--red);
+  animation: stepper-refuse 0.3s ease-in-out;
+}
+.stat-hint--refused { color: var(--red); }
+.stat-hint--refused strong { color: var(--red); }
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-green, .flash-red, .stepper--refused {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
 }

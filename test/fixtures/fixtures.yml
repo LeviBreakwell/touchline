@@ -1,9 +1,18 @@
+summer_final:
+  opponent_name: Paddington Panthers
+  date: 2025-12-08 19:40:00
+  our_score: 7
+  opponent_score: 6
+  season: summer_2025
+  stats_verified: true
+
 played_with_stats:
   opponent_name: WGD 13+
   date: 2026-05-11 19:40:00
   our_score: 5
   opponent_score: 3
   season: winter_2026
+  stats_verified: true
 
 played_no_stats:
   opponent_name: 51 Shades of Shape
@@ -11,8 +20,15 @@ played_no_stats:
   our_score: 10
   opponent_score: 2
   season: winter_2026
+  stats_verified: true
 
 upcoming:
   opponent_name: Brisbane Bandits
   date: 2026-06-01 19:40:00
+  season: winter_2026
+
+# Played, stats entered on the night, TRL has not published the result yet.
+awaiting_trl:
+  opponent_name: Toowong Terrors
+  date: 2026-05-18 19:40:00
   season: winter_2026

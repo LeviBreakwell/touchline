@@ -1,4 +1,13 @@
+summer_2025:
+  name: Bardon Mondays - 2025 Summer
+  team: warthogs
+  spawtz_season_id: "1300021"
+  created_at: 2025-10-01 09:00:00
+  updated_at: 2025-10-01 09:00:00
+
 winter_2026:
   name: Bardon Mondays - 2026 Winter
   team: warthogs
   spawtz_season_id: "1400063"
+  created_at: 2026-04-01 09:00:00
+  updated_at: 2026-04-01 09:00:00

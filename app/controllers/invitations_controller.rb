@@ -29,19 +29,6 @@ class InvitationsController < ApplicationController
   private
 
   def season_leaderboard(season)
-    stats = GameStat
-      .joins(:fixture)
-      .where(fixtures: { season_id: season.id })
-      .group(:player_id)
-      .select("player_id, SUM(tries) AS tries, SUM(assists) AS assists")
-      .index_by(&:player_id)
-
-    @team.players.order(:name).filter_map { |p|
-      s = stats[p.id]
-      next unless s
-      tries = s.tries.to_i; assists = s.assists.to_i
-      next if tries.zero? && assists.zero?
-      { name: p.name, tries: tries, assists: assists, points: (tries * 2) + assists }
-    }.sort_by { |r| -r[:points] }.first(5)
+    Leaderboard.for(@team, season: season).first(5)
   end
 end

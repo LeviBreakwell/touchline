@@ -1,8 +1,6 @@
 <% content_for :title, "Members – #{@team.name}" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← #{@team.name}", team_path(@team), style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button @team.name, team_path(@team) %>
 <h1>Members</h1>
 
 <% if @pending.any? %>

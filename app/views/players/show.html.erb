@@ -1,0 +1,99 @@
+<% content_for :title, "#{@player.name} – #{@team.name}" %>
+
+<%= back_button @team.name, team_path(@team) %>
+
+<div class="section-header" style="margin-bottom:1rem;">
+  <div>
+    <h1><%= @player.name %></h1>
+    <p class="card-meta">
+      On the roster since <%= @player.created_at.strftime("%-d %B %Y") %>
+      <% if @player.user %> · Claimed by <%= @player.user.name %><% end %>
+    </p>
+  </div>
+  <% if Current.user && (Current.user.admin_of?(@team) || @player.user_id == Current.user.id) %>
+    <%= link_to "Edit", edit_team_player_path(@team, @player), class: "btn btn-secondary btn-sm" %>
+  <% end %>
+</div>
+
+<% unless @career.any? %>
+  <div class="empty">
+    <p>No games recorded for <%= @player.name %> yet.</p>
+  </div>
+<% end %>
+
+<%# Counted in the totals above like everything else — named here so a Player
+    can see which part of their record TRL has not checked yet. %>
+<% if @pending.any? %>
+  <div class="card pending-note">
+    Counted, not yet checked: <strong><%= @pending.tries %>T · <%= @pending.assists %>A</strong>
+    from <%= pluralize(@pending.games, "game") %> TRL hasn&rsquo;t published a result for.
+  </div>
+<% end %>
+
+<% if @career.any? %>
+  <h2 style="margin-bottom:0.5rem;">Career</h2>
+  <div class="stat-grid">
+    <div class="stat-tile">
+      <div class="stat-tile-value accent"><%= @career.points %></div>
+      <div class="stat-tile-label">Points</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-value"><%= @career.tries %></div>
+      <div class="stat-tile-label">Tries</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-value"><%= @career.assists %></div>
+      <div class="stat-tile-label">Assists</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-value"><%= @career.games %></div>
+      <div class="stat-tile-label">Games</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-value"><%= @career.seasons %></div>
+      <div class="stat-tile-label">Seasons</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-tile-value"><%= @career.points_per_game %></div>
+      <div class="stat-tile-label">Pts / game</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <dl style="margin:0;">
+      <div class="average-row"><dt>Tries per game</dt><dd><%= @career.tries_per_game %></dd></div>
+      <div class="average-row"><dt>Assists per game</dt><dd><%= @career.assists_per_game %></dd></div>
+      <div class="average-row"><dt>Games per season</dt><dd><%= @career.games_per_season %></dd></div>
+      <div class="average-row"><dt>Points per season</dt><dd><%= @career.points_per_season %></dd></div>
+      <div class="average-row"><dt>Tries per season</dt><dd><%= @career.tries_per_season %></dd></div>
+      <div class="average-row"><dt>Assists per season</dt><dd><%= @career.assists_per_season %></dd></div>
+    </dl>
+  </div>
+
+  <h2 style="margin-top:1.25rem;margin-bottom:0.5rem;">By season</h2>
+  <div class="card" style="padding:0;">
+    <table class="season-table">
+      <thead>
+        <tr>
+          <th>Season</th>
+          <th>G</th>
+          <th>T</th>
+          <th>A</th>
+          <th class="points">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @seasons.each do |season| %>
+          <% line = @player.season_stats(season) %>
+          <tr>
+            <td><%= link_to season.name, team_season_path(@team, season) %></td>
+            <td><%= line.games %></td>
+            <td><%= line.tries %></td>
+            <td><%= line.assists %></td>
+            <td class="points"><%= line.points %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

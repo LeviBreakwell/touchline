@@ -6,9 +6,13 @@ A free Rails app for TRL (Touch Rugby League) teams to track player tries and as
 
 - Teams register in the app and link to their Spawtz venue/league/season
 - Fixtures and results are scraped automatically from Spawtz — no manual entry
-- Members record post-game stats (tries and assists) for each player
-- A leaderboard ranks players by points within a season (tries × 2 + assists × 1)
-- Players can optionally link their account to their roster entry
+- Members record post-game stats for each player: who played, plus tries and assists
+- Stats are checked against TRL's own scoreline — a team can never be credited with more tries, or more assists, than TRL published for that game
+- Stats can still be entered on the night, before TRL posts the result; they count on your team's leaderboard straight away and are marked *awaiting TRL* until the result lands
+- Verification is tracked for a planned cross-team social league (same venue, same night), where unchecked stats would distort everyone else's standing
+- A leaderboard ranks players by points (tries × 2 + assists × 1), filterable by season or all time
+- Every player has a stats page — career totals, seasons played, and averages per game and per season
+- Players can optionally link their account to their roster entry and see their own profile
 
 ## Tech stack
 

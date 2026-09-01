@@ -9,7 +9,8 @@ class RegistrationsController < ApplicationController
     @user = User.new(registration_params)
     if @user.save
       start_new_session_for @user
-      redirect_to after_authentication_url, notice: "Welcome to Touchline!"
+      # Signing in may already have said which team they were added to.
+      redirect_to after_authentication_url, notice: flash[:notice].presence || "Welcome to Touchline!"
     else
       render :new, status: :unprocessable_entity
     end

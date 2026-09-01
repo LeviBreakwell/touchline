@@ -43,7 +43,15 @@ module Authentication
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
         Current.session = session
         cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
+        announce_claimed_players Player.claim_by_email(user)
       end
+    end
+
+    # Being added to a team should never be silent.
+    def announce_claimed_players(players)
+      return if players.empty?
+      joined = players.map { |p| "#{p.team.name} as #{p.name}" }.to_sentence
+      flash[:notice] = "You've been added to #{joined}."
     end
 
     def terminate_session

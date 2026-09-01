@@ -1,6 +1,14 @@
 class PlayersController < ApplicationController
+  allow_unauthenticated_access only: %i[show]
   before_action :set_team
-  before_action -> { require_team_admin!(@team) }, except: %i[claim edit update]
+  before_action -> { require_team_admin!(@team) }, except: %i[show claim edit update]
+
+  def show
+    @player = @team.players.find(params[:id])
+    @career = @player.career_stats
+    @pending = @player.unconfirmed_stats
+    @seasons = @player.seasons_played
+  end
 
   def index
     @players = @team.players.order(:name)
@@ -15,7 +23,8 @@ class PlayersController < ApplicationController
     if @player.save
       redirect_to team_players_path(@team), notice: "#{@player.name} added to roster."
     else
-      render :new, status: :unprocessable_entity
+      @players = @team.players.order(:name)
+      render :index, status: :unprocessable_entity
     end
   end
 
@@ -79,6 +88,6 @@ class PlayersController < ApplicationController
   end
 
   def player_params
-    params.require(:player).permit(:name)
+    params.require(:player).permit(:name, :email)
   end
 end

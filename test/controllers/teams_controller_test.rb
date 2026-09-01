@@ -15,6 +15,37 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.user-menu"   # avatar menu rendered → user recognised
   end
 
+  test "leaderboard defaults to all-time totals across seasons" do
+    get team_path(teams(:warthogs))
+
+    assert_response :success
+    assert_select ".chip-active", text: "All time"
+    assert_select ".leaderboard tbody tr", 2       # John and Jane have both appeared
+  end
+
+  test "leaderboard can be filtered to a single season" do
+    get team_path(teams(:warthogs), season_id: seasons(:winter_2026).id)
+
+    assert_response :success
+    assert_select ".chip-active", text: seasons(:winter_2026).name
+    assert_select ".leaderboard tbody tr", 1       # Jane did not play that season
+    assert_select ".leaderboard tbody td", text: "John"
+  end
+
+  test "an unknown season id falls back to all-time" do
+    get team_path(teams(:warthogs), season_id: "999999")
+
+    assert_response :success
+    assert_select ".chip-active", text: "All time"
+  end
+
+  test "the leaderboard is hidden from users who are not members" do
+    sign_in_as users(:stranger)
+    get team_path(teams(:warthogs))
+
+    assert_select ".leaderboard", count: 0
+  end
+
   test "create builds a new team and makes the creator admin" do
     assert_difference "Team.count" do
       post teams_path, params: { team: {

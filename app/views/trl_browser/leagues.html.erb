@@ -1,8 +1,6 @@
 <% content_for :title, "Select day – Touchline" %>
 
-<div style="margin-bottom:0.5rem;">
-  <%= link_to "← Locations", trl_locations_path, style: "font-size:0.9rem;color:var(--gray-600);text-decoration:none;" %>
-</div>
+<%= back_button "Locations", trl_locations_path %>
 <h1>Select your competition day</h1>
 <p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
   Showing competitions at <strong><%= @location_slug&.titleize %></strong>.
