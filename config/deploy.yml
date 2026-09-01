@@ -7,7 +7,15 @@ image: breakwell/touchline
 # Deploy to these servers.
 servers:
   web:
-    - 170.64.226.129
+    hosts:
+      - 170.64.226.129
+    # Measured: the app sits at ~240MB. A deploy runs the old and new container
+    # at once, so the cap is what keeps that overlap from taking the host down —
+    # Docker kills an overrunning container, the health check fails, and Kamal
+    # aborts with the old one still serving. Without it, an OOM takes the whole
+    # box (and SSH) with it.
+    options:
+      memory: 600m
   # job:
   #   hosts:
   #     - 192.168.0.1
