@@ -40,12 +40,14 @@ _Avoid_: Game, match, event
 The scoreline Spawtz publishes for a Fixture. TRL scores a touchdown as one point, so `our_score` is exactly how many tries the team is credited with — and therefore the ceiling on what a StatSheet may claim, for assists as well as tries. Nil until TRL publishes, which is what allows early entry.
 _Avoid_: Result (result is win/loss/draw), points, final score
 
-**Verified** _(under review — see #17)_:
-A Fixture whose official score has arrived and whose StatSheet fits inside it. Two findings from #16 land on this term and are #17's to resolve: TRL scores a **female try as 2 points in Mixed**, so `our_score` is not the try count and the ceiling currently fails open; and a **Play can never be verified at all**, since TRL publishes nothing to check one against and Opposition assist is a judgement call besides. A Fixture is unverified either because TRL has not published yet (awaiting result) or because the sheet claims more than TRL recorded (over official). Verification does **not** gate a Team's own Leaderboard or its Players' StatLines — those count every appearance the moment it is entered. It gates the Social league, where one team's unchecked sheet would distort everyone else's standing.
+**Verified**:
+A Fixture whose official score has arrived and whose Touchdowns fit inside it. Plays never affect it (#17) — verification exists to stop a Team lifting itself above another, a ceiling bounds only over-reporting, and nobody inflates their own penalties. The real exposure on a Play is a Team quietly *not* recording its drops, which no ceiling can detect.
+
+⚠️ **Known broken, deferred:** TRL scores a **female try as 2 points in Mixed**, so `our_score` is not the try count and the ceiling fails open there — a 4-try Mixed team publishes 6 and a sheet claiming 6 tries verifies. Parked by owner decision; recorded in the map's fog. Every ceiling in the app inherits it. A Fixture is unverified either because TRL has not published yet (awaiting result) or because the sheet claims more than TRL recorded (over official). Verification does **not** gate a Team's own Leaderboard or its Players' StatLines — those count every appearance the moment it is entered. It gates the Social league, where one team's unchecked sheet would distort everyone else's standing.
 _Avoid_: Approved, confirmed, locked, official (a Fixture is verified; the *score* is official)
 
 **Social league** _(planned — not built)_:
-A Leaderboard spanning every Team that plays the same competition: one location, one day of the week. Unlike a Team's own board it ranks strangers against each other, so only **verified** Fixtures may count towards it — a Team cannot lift itself above another by entering stats TRL never recorded. This is the sole reason Fixture carries `stats_verified`. Open question: whether the grouping key is the Team's `spawtz_league_id` (TRL's own notion of a competition) or location plus weekday derived separately — Season names like "Bardon Mondays - 2026 Winter" suggest TRL already models it.
+A Leaderboard spanning every Team that plays the same competition: one location, one day of the week. Unlike a Team's own board it ranks strangers against each other, so only **verified** Fixtures may count towards it — a Team cannot lift itself above another by entering stats TRL never recorded. It ranks on **Touchdowns only** (#17): Plays are Team-local, because a Team that quietly omits its drops climbs, and no ceiling can detect an omission. A Player therefore has two point totals, and any surface showing one must say which. This is the sole reason Fixture carries `stats_verified`. Open question: whether the grouping key is the Team's `spawtz_league_id` (TRL's own notion of a competition) or location plus weekday derived separately — Season names like "Bardon Mondays - 2026 Winter" suggest TRL already models it.
 _Avoid_: Global leaderboard, public league, ladder (a ladder is TRL's team standings, not ours)
 
 **GameStat** _(being replaced — see Touchdown, Play, Appearance)_:
@@ -84,11 +86,15 @@ _Avoid_: Own goal (TRL has no such concept — a touchdown is scored by the atta
 A Player's tally, and what a Leaderboard ranks on. Try **+2**, assist **+1**, bomb catch **+1**, dropped bomb **−1**, opposition assist **−2**. Since #15 this spans two tables — Touchdowns and Plays — so it is no longer one row's arithmetic, and a Player's points can go down.
 _Avoid_: Score (the official score is TRL's), result, rating
 
-**StatSheet**:
+**StatSheet** _(retired — see #17)_:
 Every GameStat for one Fixture, saved as a unit. The only writer of GameStats, which is what makes the official score enforceable: a sheet totalling more tries — or more assists — than TRL published is refused outright and handed back with the Member's own numbers in it.
 
-Once tries are Touchdown rows (#15) the sheet checks one number instead of two: an assister is a column on a try, so a sheet can no more exceed TRL on assists than it can on tries. Whether the field screen still writes through a sheet at all, or writes each Touchdown as it is tapped, is #19.
+Retired because its whole justification was that enforcement, and the enforcement is gone. During a live game TRL has published nothing, so there is no ceiling to check — the refusal could only ever fire on a game TRL had already scored. Going over now flags the Fixture **over official**, which is the path the app already took when TRL corrected a score downward. One mechanism instead of two. The field screen writes each Touchdown and Play as it is entered; there is no sheet, no submit, and no half-entered game to preserve.
 _Avoid_: Form, entry, submission, bulk update
+
+**MVP** _(decided — not built)_:
+The Player with the most points in a Fixture, counting Plays as well as Touchdowns. A Team's own award, decided by the people who were at the game. The Social league has no MVP — it cannot, since it does not count Plays. Career MVP counts stand on a Player's profile; they are simply not a cross-team ranking input.
+_Avoid_: Player of the match, best on ground, man of the match
 
 **Appearance**:
 The Player took the field in that Fixture. Only appearances count towards games played and every average derived from it. A Player named on the sheet who did not play records the opposite, and drags no average down. Recording a try or an assist implies an appearance.
