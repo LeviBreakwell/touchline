@@ -40,8 +40,8 @@ _Avoid_: Game, match, event
 The scoreline Spawtz publishes for a Fixture. TRL scores a touchdown as one point, so `our_score` is exactly how many tries the team is credited with — and therefore the ceiling on what a StatSheet may claim, for assists as well as tries. Nil until TRL publishes, which is what allows early entry.
 _Avoid_: Result (result is win/loss/draw), points, final score
 
-**Verified**:
-A Fixture whose official score has arrived and whose StatSheet fits inside it. A Fixture is unverified either because TRL has not published yet (awaiting result) or because the sheet claims more than TRL recorded (over official). Verification does **not** gate a Team's own Leaderboard or its Players' StatLines — those count every appearance the moment it is entered. It gates the Social league, where one team's unchecked sheet would distort everyone else's standing.
+**Verified** _(under review — see #17)_:
+A Fixture whose official score has arrived and whose StatSheet fits inside it. Two findings from #16 land on this term and are #17's to resolve: TRL scores a **female try as 2 points in Mixed**, so `our_score` is not the try count and the ceiling currently fails open; and a **Play can never be verified at all**, since TRL publishes nothing to check one against and Opposition assist is a judgement call besides. A Fixture is unverified either because TRL has not published yet (awaiting result) or because the sheet claims more than TRL recorded (over official). Verification does **not** gate a Team's own Leaderboard or its Players' StatLines — those count every appearance the moment it is entered. It gates the Social league, where one team's unchecked sheet would distort everyone else's standing.
 _Avoid_: Approved, confirmed, locked, official (a Fixture is verified; the *score* is official)
 
 **Social league** _(planned — not built)_:
@@ -49,7 +49,7 @@ A Leaderboard spanning every Team that plays the same competition: one location,
 _Avoid_: Global leaderboard, public league, ladder (a ladder is TRL's team standings, not ours)
 
 **GameStat** _(being replaced — see Touchdown, Play, Appearance)_:
-A Player's performance in a single Fixture: whether they played, plus tries and assists as integer columns. Points = (tries × 2) + (assists × 1). Entered post-game by any Member, always through a StatSheet.
+A Player's performance in a single Fixture: whether they played, plus tries and assists as integer columns. Points = (tries × 2) + (assists × 1) — see **Points**, which since #16 also counts Plays and can be negative. Entered post-game by any Member, always through a StatSheet.
 
 Two concepts welded together: an **Appearance** record and a tally. Decided (#15) that the tally becomes counted rows — a **Touchdown** per try, a **Play** per one-player stat — and what is left of the row keeps only `played` and is renamed **Appearance**. Nothing is cached: tries and assists are counted, never stored. Until that lands, GameStat is still what the app writes.
 _Avoid_: Stat, score, record
@@ -59,8 +59,30 @@ One try, as a row: the Fixture, the Player who scored it, and optionally the Pla
 _Avoid_: Score, scoring event, event (a Fixture is the event), try record
 
 **Play** _(decided — not built)_:
-One stat by one Player in one Fixture that is not a try: the Fixture, the Player, and a kind. A row per occurrence, so undoing one is deleting it. The starter kinds — a drop ball, and assisting the opposition — are defined in #16. Unlike a Touchdown, a Play is never measured against the official score: TRL publishes nothing to check it against.
+One stat by one Player in one Fixture that is not a try: the Fixture, the Player, and a kind. A row per occurrence, so undoing one is deleting it. Unlike a Touchdown, a Play is never measured against the official score — TRL publishes nothing to check one against. The starter kinds (#16) are **Bomb catch**, **Dropped bomb** and **Opposition assist**. A Play may be worth more than nothing or less than nothing, which is why it is not called an infringement.
 _Avoid_: Stat, event, incident, infringement (a Play may be good or bad)
+
+**Bomb**:
+The kick-off. TRL restarts with a "must take" bomb kick — at the start of each half, and again after every try, so a team receives four or five in a game. Catching one is the most frequent thing worth recording in a game of TRL; scoring is not.
+_Avoid_: Kick-off catch, high ball, restart
+
+**Bomb catch** _(decided — not built)_:
+A Play: the Player caught the kick-off cleanly. Worth **+1**. It exists because without it the stat set punishes going up for the ball and rewards standing back — a scoresheet that discourages the brave act is worse than no scoresheet. Together with Dropped bomb it gives a Player a catch rate, since every kick-off a Player contests produces exactly one or the other.
+_Avoid_: Take, mark, reception
+
+**Dropped bomb** _(decided — not built)_:
+A Play: the Player dropped the kick-off, handing the opposition the ball. Worth **−1**. Deliberately narrow — this is *not* a general-play spill, which TRL calls spilt milk and which nobody recalls accurately hours later. A dropped bomb is one moment, one culprit, seen by everyone and still agreed on by the time the sheet is entered. The name carries the scope so a general spill cannot be filed under it.
+_Avoid_: Drop ball, knock-on, error, spilt milk (spilt milk is any spill in open play — a different thing we do not record)
+
+**Opposition assist** _(decided — not built)_:
+A Play: the Player made an error the opposition scored directly from. Worth **−2**. Any error qualifies, not only an intercepted pass. **"Directly from" is a judgement call** — there is no set-of-six rule and no next-play rule; whoever enters the sheet decides. This is the one stat in the app with no objective definition, accepted knowingly (#16) on the grounds that a Team's own sheet is entered among people who were there. It follows that it can never be verified — see Verified.
+
+Stats stack: a Dropped bomb the opposition scores from is a Dropped bomb **and** an Opposition assist, −3 in total. Both are true, and a career page reading "dropped bombs: 5" has to mean five.
+_Avoid_: Own goal (TRL has no such concept — a touchdown is scored by the attacking team, full stop), turnover, error
+
+**Points**:
+A Player's tally, and what a Leaderboard ranks on. Try **+2**, assist **+1**, bomb catch **+1**, dropped bomb **−1**, opposition assist **−2**. Since #15 this spans two tables — Touchdowns and Plays — so it is no longer one row's arithmetic, and a Player's points can go down.
+_Avoid_: Score (the official score is TRL's), result, rating
 
 **StatSheet**:
 Every GameStat for one Fixture, saved as a unit. The only writer of GameStats, which is what makes the official score enforceable: a sheet totalling more tries — or more assists — than TRL published is refused outright and handed back with the Member's own numbers in it.
@@ -137,6 +159,15 @@ Once #15 lands, GameStat is replaced by three:
 
 > **Dev:** "A player took the field and did nothing at all. What's in the database?"
 > **Domain expert:** "An appearance and nothing else. That's still a game he played, and it should pull his averages down like any other."
+
+> **Dev:** "Why record catching the kick-off? Nothing happened."
+> **Domain expert:** "Because if dropping it costs you and catching it earns you nothing, nobody goes up for it. You'd have blokes letting it bounce to protect their numbers. That's the opposite of what you want."
+
+> **Dev:** "Someone spilled it in open play and we lost the ball. Is that a dropped bomb?"
+> **Domain expert:** "No. A dropped bomb is the kick-off. Open play spills happen all game and nobody agrees how many by the time you're in the car — record those and you've got a made-up number."
+
+> **Dev:** "Their try came two plays after our mistake. Opposition assist or not?"
+> **Domain expert:** "Your call. You were there. It's the one thing on the sheet we don't have a rule for — which is exactly why it can't count outside your own team."
 
 > **Dev:** "TRL corrected a result down a week later and now our sheet is over. What happens?"
 > **Domain expert:** "Your own board doesn't move — those are still your games. The fixture gets flagged as over TRL so someone goes back and fixes it, and until they do it can't count for the social league."
