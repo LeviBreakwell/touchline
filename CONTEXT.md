@@ -57,7 +57,9 @@ Two concepts welded together: an **Appearance** record and a tally. Decided (#15
 _Avoid_: Stat, score, record
 
 **Touchdown** _(decided — not built)_:
-One try, as a row: the Fixture, the Player who scored it, and optionally the Player who assisted it. A try with no assist has a null assister; a try can carry at most **one**, because every assist is a pass for a try that was actually scored. That makes "assists ≤ tries" true by shape rather than by validation. A Touchdown is always the Team's own try — the opposition's are never stored, so assisting them is a Play instead. Ordered by when it was entered; the app records no match clock, because stats are recalled after the game, not timed during it.
+One try, as a row: the Fixture, the Player who scored it, and optionally the Player who assisted it. A try with no assist has a null assister; a try can carry at most **one**, because every assist is a pass for a try that was actually scored. A Touchdown is always the Team's own try — the opposition's are never stored, so assisting them is a Play instead. Ordered by when it was entered; the app records no match clock, because stats are recalled after the game, not timed during it.
+
+The **scorer** is null in exactly one case (#18): an assist migrated from the old counters, where the try it belonged to was never recorded and cannot be recovered. A null scorer is therefore its own marker for imported history. It costs one filter — `entered_tries` must count only rows with a scorer — and nothing else, because a row with no scorer matches no Player's try count. It does mean **"assists ≤ tries" is guaranteed by shape only for rows entered since**; for imported history it is true in fact, because the old ceiling enforced it.
 _Avoid_: Score, scoring event, event (a Fixture is the event), try record
 
 **Play** _(decided — not built)_:
@@ -97,9 +99,11 @@ The Player with the most points in a Fixture, counting Plays as well as Touchdow
 _Avoid_: Player of the match, best on ground, man of the match
 
 **Appearance**:
-The Player took the field in that Fixture. Only appearances count towards games played and every average derived from it. A Player named on the sheet who did not play records the opposite, and drags no average down. Recording a try or an assist implies an appearance.
+The Player took the field in that Fixture. Only appearances count towards games played and every average derived from it. Recording a try, an assist or a Play implies an appearance.
 
-Today this is a GameStat with `played` set. Decided (#15): it becomes its own record, which is the whole of what survives GameStat once the tally moves to counted rows. It cannot be derived from Touchdowns and Plays — a Player who took the field and did nothing leaves no other row anywhere, and that game still counts.
+Decided (#15): it becomes its own record, which is the whole of what survives GameStat once the tally moves to counted rows. It cannot be derived from Touchdowns and Plays — a Player who took the field and did nothing leaves no other row anywhere, and that game still counts.
+
+**The row's existence is the fact** (#18) — there is no `played` column. The sideline toggle inserts and deletes it. The old boolean existed to record "named on the sheet but did not play", and the only thing that ever read it was re-rendering a rejected StatSheet; #17 retired the sheet. Dropping it also stops the app asserting absences nobody observed: the `played` backfill set `played = (tries > 0 OR assists > 0)`, which marked every scoreless appearance in old data as an absence. Those rows are not migrated. The app has no record either way, which is the truth, and anyone who was there can tick the sideline on that fixture and fix it.
 _Avoid_: Attendance, cap, selection
 
 **StatLine**:
