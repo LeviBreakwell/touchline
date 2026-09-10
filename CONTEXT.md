@@ -115,7 +115,7 @@ A ranking of Players ordered by points (then tries, then assists as tiebreakers)
 _Avoid_: Table, standings, rankings
 
 **XP** _(decided — not built)_:
-What a **User** earns for taking part. 10 for an Appearance, plus 1 for every stat recorded against them **whatever its sign** — a dropped bomb earns the same as a try and still costs 2 points. A bigger game is worth more, but only a little: XP is experience, and drawing a weak side and capitalising should not outrun a run of simply turning up. The best imaginable single game is 2.5× a quiet one, while four games of turning up is worth twice the best single game. That split is the whole point of having two currencies: **points measure performance, XP measures participation**. MVP pays 4, a completed Challenge 5, an Accolade 2, 6 or 20 by tier. There is no cap and no diminishing return: the Appearance base is most of a game's value, so turning up across a season outweighs anybody's best single game.
+What a **User** earns for taking part. 10 for an Appearance, plus 1 for every stat recorded against them **whatever its sign** — a dropped bomb earns the same as a try and still costs 2 points. A bigger game is worth more, but only a little: XP is experience, and drawing a weak side and capitalising should not outrun a run of simply turning up. The best imaginable single game is 2.5× a quiet one, while four games of turning up is worth twice the best single game. That split is the whole point of having two currencies: **points measure performance, XP measures participation**. MVP pays 4, an Accolade 2, 6 or 20 by tier. There is no cap and no diminishing return: the Appearance base is most of a game's value, so turning up across a season outweighs anybody's best single game.
 _Avoid_: Points (points are a Player's tally and can go down; XP only rises), score, rating
 
 **Level** _(decided — not built)_:
@@ -124,14 +124,16 @@ _Avoid_: Rank (a rank is a position on a Leaderboard), tier, grade
 
 **Accolade** _(decided — not built)_:
 Something a User has done, recorded permanently and unlocking a **Title**. A rare one also unlocks a **Card banner**. Pays XP at a fixed **tier** — 2, 6 or 20 — never a bespoke value, so adding a new accolade stays data entry rather than an economy change.
-_Avoid_: Achievement, badge, trophy, award (an award is MVP)
 
-**Challenge** _(decided — not built)_:
-Something a User can go and do, as opposed to something they have done. Pays 5 XP.
-_Avoid_: Quest, mission, goal, objective
+Two shapes (#21). A **tiered** accolade is a running total crossing a rung: monotonic, earned once per rung, never lost, only not-yet-reached. A **repeatable** one is an event that can happen again — a grand final, an MVP — paying XP every time and carrying a count. Ladders are **scaled per stat**, because the same rungs on different stats are wildly different achievements: 20 bomb catches is 18 games, 20 opposition assists is 200.
+
+**Awarded, never computed.** A row per occurrence with a date, and never revoked — repeatables need somewhere to keep their occurrences, and a corrected sheet must not silently take an accolade back off somebody. Claiming a roster entry writes everything the banked history earned, all at once.
+
+Negative stats earn accolades on the same footing as anything else, which is only safe because **a Title is chosen by the Player, never assigned**.
+_Avoid_: Achievement, badge, trophy, award (an award is MVP), **challenge** (#21 collapsed the two — there is only Accolade)
 
 **Title**, **Icon border**, **Card banner** _(decided — not built)_:
-The three cosmetic slots on a Player's card. **One slot, one source**: the **border** is gated by **Level**, so it says how long someone has been around; the **title** comes from an **Accolade**, so it says what they did; the **banner** comes from a rare Accolade. A Player who has not been claimed carries none of them — banked history earns nothing until somebody claims it, and the card says so.
+The three cosmetic slots on a Player's card. **One slot, one source**: the **border** is gated by **Level**, so it says how long someone has been around; the **title** comes from an **Accolade**, so it says what they did; the **banner** comes from a rare Accolade. A Title is **selected by the Player from those unlocked, never assigned** — the negative accolades are only bearable because "Butterfingers" is worn on purpose rather than pinned on somebody. A Player who has not been claimed carries none of them — banked history earns nothing until somebody claims it, and the card says so.
 _Avoid_: Skin, cosmetic (fine in conversation, not in the model), flair
 
 **Spawtz**:
