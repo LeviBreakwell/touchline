@@ -114,6 +114,26 @@ _Avoid_: Summary, totals, record
 A ranking of Players ordered by points (then tries, then assists as tiebreakers), scoped either to one of a Team's Seasons or to all time across every Season. Only Players with at least one appearance are ranked, and an appearance counts as soon as it is entered — see Verified.
 _Avoid_: Table, standings, rankings
 
+**XP** _(decided — not built)_:
+What a **User** earns for taking part. 10 for an Appearance, plus 3 for every stat recorded against them **whatever its sign** — a dropped bomb earns the same as a try and still costs 2 points. That split is the whole point of having two currencies: **points measure performance, XP measures participation**. MVP pays 4, a completed Challenge 5, an Accolade 2, 6 or 20 by tier. There is no cap and no diminishing return: the Appearance base is most of a game's value, so turning up across a season outweighs anybody's best single game.
+_Avoid_: Points (points are a Player's tally and can go down; XP only rises), score, rating
+
+**Level** _(decided — not built)_:
+A User's standing, derived from XP. Each level costs 2 XP more than the last, so cumulative XP to level *L* is `L(L + 9)`: level 4 is 3 games played, 10 is 11, 20 is 33, 40 is 112. Broadly it reads as how much football someone has turned up to. **Never expressed in seasons** — a season's length depends on how many teams are in the competition, anywhere from about 5 games to about 26, so a milestone quoted in seasons would mean something different in every league.
+_Avoid_: Rank (a rank is a position on a Leaderboard), tier, grade
+
+**Accolade** _(decided — not built)_:
+Something a User has done, recorded permanently and unlocking a **Title**. A rare one also unlocks a **Card banner**. Pays XP at a fixed **tier** — 2, 6 or 20 — never a bespoke value, so adding a new accolade stays data entry rather than an economy change.
+_Avoid_: Achievement, badge, trophy, award (an award is MVP)
+
+**Challenge** _(decided — not built)_:
+Something a User can go and do, as opposed to something they have done. Pays 5 XP.
+_Avoid_: Quest, mission, goal, objective
+
+**Title**, **Icon border**, **Card banner** _(decided — not built)_:
+The three cosmetic slots on a Player's card. **One slot, one source**: the **border** is gated by **Level**, so it says how long someone has been around; the **title** comes from an **Accolade**, so it says what they did; the **banner** comes from a rare Accolade. A Player who has not been claimed carries none of them — banked history earns nothing until somebody claims it, and the card says so.
+_Avoid_: Skin, cosmetic (fine in conversation, not in the model), flair
+
 **Spawtz**:
 The third-party platform TRL Australia uses to publish fixtures and results. The app scrapes Spawtz to sync Fixtures and game results — there is no official API.
 _Avoid_: TRL website, external API, feed
