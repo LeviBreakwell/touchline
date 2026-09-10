@@ -134,7 +134,14 @@ _Avoid_: Achievement, badge, trophy, award (an award is MVP), **challenge** (#21
 
 **Title**, **Icon border**, **Card banner** _(decided — not built)_:
 The three cosmetic slots on a Player's card. **One slot, one source**: the **border** is gated by **Level**, so it says how long someone has been around; the **title** comes from an **Accolade**, so it says what they did; the **banner** comes from a rare Accolade. A Title is **selected by the Player from those unlocked, never assigned** — the negative accolades are only bearable because "Butterfingers" is worn on purpose rather than pinned on somebody. A Player who has not been claimed carries none of them — banked history earns nothing until somebody claims it, and the card says so.
-_Avoid_: Skin, cosmetic (fine in conversation, not in the model), flair
+
+The **border is automatic**, always the highest tier reached, because it is a rank rather than a decoration: it has to mean the same thing on every card, for everybody. It climbs by **shape as well as colour** (#22) — circle, shield, octagon, star, each in bronze, silver and gold — since colour alone runs out after about four distinguishable steps. Twelve tiers from four pieces of art, spanning one game to about three hundred.
+
+There is **no tagline**. The card has a single line under the name and the Title has earned it; a second line of free text would also be the app's only unmoderated field, eventually sitting beside strangers' names in the Social league.
+_Avoid_: Skin, cosmetic (fine in conversation, not in the model), flair, tagline (there isn't one)
+
+**Showcase** _(decided — not built)_:
+Three Accolades a User pins to the top of their profile, chosen from those they have earned. **The only place accolade art appears** — never on a Leaderboard card, where a row of badges beside every name would be unreadable. Three at a time is what makes it a showcase rather than clutter, and choosing them is the act of self-presentation a Title alone cannot carry. It is also why the art bill is small: once a glyph is only ever seen here, it can belong to a whole ladder rather than to one rung.
 
 **Spawtz**:
 The third-party platform TRL Australia uses to publish fixtures and results. The app scrapes Spawtz to sync Fixtures and game results — there is no official API.
