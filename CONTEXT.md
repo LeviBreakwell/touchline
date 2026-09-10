@@ -115,11 +115,11 @@ A ranking of Players ordered by points (then tries, then assists as tiebreakers)
 _Avoid_: Table, standings, rankings
 
 **XP** _(decided — not built)_:
-What a **User** earns for taking part. 10 for an Appearance, plus 3 for every stat recorded against them **whatever its sign** — a dropped bomb earns the same as a try and still costs 2 points. That split is the whole point of having two currencies: **points measure performance, XP measures participation**. MVP pays 4, a completed Challenge 5, an Accolade 2, 6 or 20 by tier. There is no cap and no diminishing return: the Appearance base is most of a game's value, so turning up across a season outweighs anybody's best single game.
+What a **User** earns for taking part. 10 for an Appearance, plus 1 for every stat recorded against them **whatever its sign** — a dropped bomb earns the same as a try and still costs 2 points. A bigger game is worth more, but only a little: XP is experience, and drawing a weak side and capitalising should not outrun a run of simply turning up. The best imaginable single game is 2.5× a quiet one, while four games of turning up is worth twice the best single game. That split is the whole point of having two currencies: **points measure performance, XP measures participation**. MVP pays 4, a completed Challenge 5, an Accolade 2, 6 or 20 by tier. There is no cap and no diminishing return: the Appearance base is most of a game's value, so turning up across a season outweighs anybody's best single game.
 _Avoid_: Points (points are a Player's tally and can go down; XP only rises), score, rating
 
 **Level** _(decided — not built)_:
-A User's standing, derived from XP. Each level costs 2 XP more than the last, so cumulative XP to level *L* is `L(L + 9)`: level 4 is 3 games played, 10 is 11, 20 is 33, 40 is 112. Broadly it reads as how much football someone has turned up to. **Never expressed in seasons** — a season's length depends on how many teams are in the competition, anywhere from about 5 games to about 26, so a milestone quoted in seasons would mean something different in every league.
+A User's standing, derived from XP. Each level costs 2 XP more than the last, so cumulative XP to level *L* is `L(L + 9)`: level 4 is 4 games played, 10 is 15, 20 is 46, 40 is 157. Broadly it reads as how much football someone has turned up to. **Never expressed in seasons** — a season's length depends on how many teams are in the competition, anywhere from about 5 games to about 26, so a milestone quoted in seasons would mean something different in every league.
 _Avoid_: Rank (a rank is a position on a Leaderboard), tier, grade
 
 **Accolade** _(decided — not built)_:
