@@ -25,14 +25,17 @@ class TeamsController < ApplicationController
     redirect_to @team, notice: "Invite link regenerated. The old link no longer works."
   end
 
+  def current_tab = :team
+
   def show
-    @current_season = @team.seasons.order(created_at: :desc).first
+    remember_team(@team)
+    @current_season = @team.seasons.by_recency.first
     @membership = Current.user&.team_memberships&.find_by(team: @team)
     if @membership&.accepted?
       @my_player = @team.players.find_by(user_id: Current.user.id)
       @unclaimed_players = @team.players.where(user_id: nil).order(:name) if @my_player.nil?
 
-      @leaderboard_seasons = @team.seasons.order(created_at: :desc)
+      @leaderboard_seasons = @team.seasons.by_recency
       @leaderboard_season = @leaderboard_seasons.find_by(id: params[:season_id])
       @leaderboard = Leaderboard.for(@team, season: @leaderboard_season)
     end

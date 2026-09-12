@@ -11,8 +11,7 @@ class HomeController < ApplicationController
       Fixture
         .where(season_id: season_ids)
         .where.not(our_score: nil)
-        .left_joins(:game_stats)
-        .where(game_stats: { id: nil })
+        .without_stats
         .order(date: :desc)
         .group_by(&:season_id)
         .transform_values(&:first)

@@ -5,13 +5,19 @@ class PlayersController < ApplicationController
 
   def show
     @player = @team.players.find(params[:id])
+    remember_team(@team)
+
     @career = @player.career_stats
     @pending = @player.unconfirmed_stats
     @seasons = @player.seasons_played
-  end
 
-  def index
-    @players = @team.players.order(:name)
+    # This season leads, because it is the comparison every arrow on the page
+    # makes — it should not be below the fold.
+    @season = @seasons.first
+    @season_line = @season ? @player.season_stats(@season) : StatLine.new
+    @form = Form.new(season: @season_line, career: @career)
+
+    @progression = Progression.new(@player.user) if @player.user
   end
 
   def new
@@ -21,10 +27,10 @@ class PlayersController < ApplicationController
   def create
     @player = @team.players.new(player_params)
     if @player.save
-      redirect_to team_players_path(@team), notice: "#{@player.name} added to roster."
+      redirect_to team_settings_path(@team), notice: "#{@player.name} added to roster."
     else
-      @players = @team.players.order(:name)
-      render :index, status: :unprocessable_entity
+      @settings = TeamSettings.new(@team)
+      render "team_settings/show", status: :unprocessable_entity
     end
   end
 
@@ -43,7 +49,7 @@ class PlayersController < ApplicationController
     end
     if @player.update(player_params)
       if Current.user.admin_of?(@team)
-        redirect_to team_players_path(@team), notice: "#{@player.name} updated."
+        redirect_to team_settings_path(@team), notice: "#{@player.name} updated."
       else
         redirect_to team_path(@team), notice: "Your name has been updated to #{@player.name}."
       end
@@ -54,7 +60,7 @@ class PlayersController < ApplicationController
 
   def destroy
     @team.players.find(params[:id]).destroy
-    redirect_to team_players_path(@team), notice: "Player removed."
+    redirect_to team_settings_path(@team), notice: "Player removed."
   end
 
   def claim
@@ -74,7 +80,11 @@ class PlayersController < ApplicationController
     @team.players.where(user_id: Current.user.id).where.not(id: player.id).update_all(user_id: nil)
     player.update!(user_id: Current.user.id)
 
-    redirect_to team_path(@team), notice: "You're now linked as #{player.name}."
+    # Banked history earns nothing until somebody claims it, and then it earns
+    # all of it at once — which is the payoff the claim flow exists for.
+    AccoladeLedger.settle(Current.user)
+
+    redirect_to profile_slots_path(claimed: player.id), notice: "You're now linked as #{player.name}."
   end
 
   private

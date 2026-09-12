@@ -1,12 +1,25 @@
 <% content_for :title, "#{@season.name} – #{@team.name}" %>
 
-<%= back_button @team.name, team_path(@team) %>
-<div class="section-header" style="margin-bottom:1.25rem;">
-  <div>
+<%# ── THE SEASON TAB: that season's matches ──
+    The leaderboard is the Team tab's job, over any scope you like. This tab is
+    the draw. %>
+<div class="tab-head">
+  <div class="tab-head-title">
     <h1><%= @season.name %></h1>
     <p class="card-meta"><%= @team.name %></p>
   </div>
 </div>
+
+<% if @seasons.many? %>
+  <div class="scope-row" data-controller="nav-select">
+    <select class="scope-select" data-action="change->nav-select#go" aria-label="Season">
+      <% @seasons.each do |season| %>
+        <option value="<%= team_season_path(@team, season) %>"
+                <%= "selected" if season == @season %>><%= season.name %></option>
+      <% end %>
+    </select>
+  </div>
+<% end %>
 
 <%# ── ENTER STATS PROMPT (most recently played game with no stats yet) ── %>
 <% if @next_to_record && Current.user&.member_of?(@team) %>
@@ -21,16 +34,8 @@
         <span class="badge badge-<%= @next_to_record.result %>" style="margin-left:0.25rem;"><%= @next_to_record.result.upcase %></span>
       <% end %>
     </div>
-    <div class="record-prompt-cta">Enter tries &amp; assists →</div>
+    <div class="record-prompt-cta">Enter stats →</div>
   <% end %>
-<% end %>
-
-<%# ── LEADERBOARD ── %>
-<% any_stats = @leaderboard.any? %>
-<% if any_stats %>
-  <div class="card" style="padding:0;margin-bottom:1.25rem;">
-    <%= render "shared/leaderboard", rows: @leaderboard, team: @team %>
-  </div>
 <% end %>
 
 <%# ── FIXTURES ── %>
@@ -53,14 +58,14 @@
         <% end %>
         <% unless fixture.stats_status == :verified %><%= trl_status_badge(fixture) %><% end %>
       </div>
-      <% scorers = fixture_scorers(fixture) %>
+      <% scorers = fixture_scorers(fixture, @players_by_id) %>
       <% if scorers.any? %>
         <div class="fixture-scorers">
-          <% scorers.each do |stat| %>
+          <% scorers.each do |scorer| %>
             <span class="scorer">
-              <span class="scorer-name"><%= stat.player.name %></span>
-              <%= stat_tally(stat.tries, :tries) %>
-              <%= stat_tally(stat.assists, :assists) %>
+              <span class="scorer-name"><%= scorer.player.name %></span>
+              <%= stat_tally(scorer.tries, :tries) %>
+              <%= stat_tally(scorer.assists, :assists) %>
             </span>
           <% end %>
         </div>
@@ -69,8 +74,8 @@
   <% end %>
 <% end %>
 
-<% unless any_stats || @next_to_record %>
+<% if @fixtures.none?(&:stats_entered?) && @next_to_record.nil? %>
   <div class="empty" style="margin-top:1rem;">
-    <p>No stats yet. Tap a played fixture to enter tries and assists.</p>
+    <p>No stats yet. Tap a played fixture to enter them.</p>
   </div>
 <% end %>

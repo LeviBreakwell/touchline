@@ -8,7 +8,7 @@ class SeasonsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows the enter-stats prompt for the most recent played game with no stats" do
-    # played_no_stats (51 Shades of Shape) is played but has no game_stats
+    # played_no_stats (51 Shades of Shape) is played but has nothing entered
     get team_season_path(@team, @season)
     assert_response :success
     assert_select ".record-prompt", text: /51 Shades of Shape/
@@ -23,39 +23,27 @@ class SeasonsControllerTest < ActionDispatch::IntegrationTest
   test "does not surface upcoming games in the enter-stats prompt" do
     # Make both played fixtures have no scores → prompt should disappear
     fixtures(:played_no_stats).update!(our_score: nil, opponent_score: nil)
-    fixtures(:played_with_stats).game_stats.delete_all
+    fixtures(:played_with_stats).touchdowns.delete_all
+    fixtures(:played_with_stats).appearances.delete_all
     fixtures(:played_with_stats).update!(our_score: nil, opponent_score: nil)
     get team_season_path(@team, @season)
     assert_select ".record-prompt", count: 0
   end
 
-  test "leaderboard table appears when stats exist" do
+  # The board is the Team tab's job, over any scope you like — this tab is the
+  # draw. See TeamsControllerTest for the leaderboard itself.
+  test "the season tab is the fixtures, not the board" do
     get team_season_path(@team, @season)
-    assert_select "table.leaderboard"
+
+    assert_select ".ladder--board", count: 0
+    assert_select ".fixture-card"
   end
 
-  test "the leaderboard carries a movement indicator on every row" do
+  test "the season dropdown carries every season the team has played" do
     get team_season_path(@team, @season)
 
-    assert_select "table.leaderboard tbody tr" do |rows|
-      assert_operator rows.size, :>, 0
-      rows.each { |row| assert_select row, "td.move-col .move", 1 }
-    end
-  end
-
-  test "a player on a scoring run is flamed on the leaderboard" do
-    # John already has tries v WGD 13+ and v Toowong Terrors; a third makes a run
-    fixtures(:played_no_stats).game_stats.create!(player: players(:john), tries: 2, assists: 0)
-
-    get team_season_path(@team, @season)
-
-    assert_select "table.leaderboard .flame", 1
-  end
-
-  test "no flame for a player who has not put three straight games together" do
-    get team_season_path(@team, @season)
-
-    assert_select "table.leaderboard .flame", 0
+    assert_select ".scope-select option", @team.seasons.count
+    assert_select ".scope-select option[selected]", text: @season.name
   end
 
   # winter_2026: john scored 3T/1A v WGD 13+ and 4T/2A v Toowong Terrors.

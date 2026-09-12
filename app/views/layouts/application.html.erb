@@ -57,11 +57,15 @@
     </header>
     <% end %>
 
-    <main class="container">
+    <main class="container<%= " container--tabbed" unless content_for?(:suppress_tabs) %>">
       <% flash.each do |type, message| %>
         <div class="flash <%= type %>"><%= message %></div>
       <% end %>
       <%= yield %>
     </main>
+
+    <% unless content_for?(:suppress_tabs) %>
+      <%= render "shared/tab_bar" %>
+    <% end %>
   </body>
 </html>

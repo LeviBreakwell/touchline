@@ -32,16 +32,28 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_includes stat_tally(2, :assists), %(aria-label="2 assists")
   end
 
-  test "fixture_scorers leaves off a player who was on the sheet but did not score" do
-    # janes_game_one is 0 tries, 0 assists on this fixture
-    assert_equal [ players(:john) ], fixture_scorers(fixtures(:played_with_stats)).map(&:player)
+  def roster = teams(:warthogs).players.index_by(&:id)
+
+  test "fixture_scorers leaves off a player who put nothing on the board" do
+    # Jane was named for this fixture and did not take the field
+    assert_equal [ players(:john) ], fixture_scorers(fixtures(:played_with_stats), roster).map(&:player)
   end
 
   test "fixture_scorers puts the biggest contribution first" do
     fixture = fixtures(:awaiting_trl) # john has 4 tries, 2 assists here
-    fixture.game_stats.create!(player: players(:jane), tries: 9, assists: 0)
+    fixture.appearances.create!(player: players(:jane))
+    9.times { fixture.touchdowns.create!(scorer: players(:jane)) }
 
-    assert_equal [ players(:jane), players(:john) ], fixture_scorers(fixture.reload).map(&:player)
+    assert_equal [ players(:jane), players(:john) ], fixture_scorers(fixture.reload, roster).map(&:player)
+  end
+
+  test "fixture_scorers counts an imported assist under its assister and nobody else" do
+    fixture = fixtures(:played_with_stats) # john: 3 tries, 1 scorer-less assist
+
+    scorer = fixture_scorers(fixture, roster).sole
+
+    assert_equal 3, scorer.tries
+    assert_equal 1, scorer.assists
   end
 
   # ── LEADERBOARD MOVEMENT & STREAK ─────────────────────────────────────────

@@ -15,35 +15,76 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.user-menu"   # avatar menu rendered → user recognised
   end
 
+  # A dropdown rather than chips: two seasons a year is seven chips after three
+  # years, wrapping across a phone.
   test "leaderboard defaults to all-time totals across seasons" do
     get team_path(teams(:warthogs))
 
     assert_response :success
-    assert_select ".chip-active", text: "All time"
-    assert_select ".leaderboard tbody tr", 2       # John and Jane have both appeared
+    assert_select ".scope-select option[selected]", text: "All time"
+    assert_select ".ladder--board .lcard", 2       # John and Jane have both appeared
   end
 
   test "leaderboard can be filtered to a single season" do
     get team_path(teams(:warthogs), season_id: seasons(:winter_2026).id)
 
     assert_response :success
-    assert_select ".chip-active", text: seasons(:winter_2026).name
-    assert_select ".leaderboard tbody tr", 1       # Jane did not play that season
-    assert_select ".leaderboard tbody td", text: "John"
+    assert_select ".scope-select option[selected]", text: seasons(:winter_2026).name
+    assert_select ".ladder--board .lcard", 1       # Jane did not play that season
+    assert_select ".ladder--board .lcard-name", text: /John/
   end
 
   test "an unknown season id falls back to all-time" do
     get team_path(teams(:warthogs), season_id: "999999")
 
     assert_response :success
-    assert_select ".chip-active", text: "All time"
+    assert_select ".scope-select option[selected]", text: "All time"
+  end
+
+  # ── THE TABS ──────────────────────────────────────────────────────────────
+
+  test "the three tabs are on every screen but the ladder" do
+    get team_path(teams(:warthogs))
+
+    assert_select ".tab-bar .tab", 3
+    assert_select ".tab-bar .tab--on", text: /Team/
+  end
+
+  test "the ladder takes over the screen" do
+    get team_season_fixture_path(teams(:warthogs), seasons(:winter_2026), fixtures(:played_with_stats))
+
+    assert_select ".tab-bar", count: 0
+  end
+
+  test "the season tab points at the season most recently played" do
+    get team_path(teams(:warthogs))
+
+    assert_select ".tab-bar a[href=?]", team_season_path(teams(:warthogs), seasons(:winter_2026))
+  end
+
+  # Team is global context, so the tabs follow you off a team's own pages.
+  test "the tabs stay on the team you were last looking at" do
+    get team_path(teams(:warthogs))
+    get profile_path
+
+    assert_select ".tab-bar a[href=?]", team_path(teams(:warthogs))
+    assert_select ".tab-bar .tab--on", text: /Profile/
+  end
+
+  test "the gear is the admin's way in, and only the admin's" do
+    get team_path(teams(:warthogs))
+    assert_select "a.btn-gear[href=?]", team_settings_path(teams(:warthogs))
+
+    sign_in_as users(:member_user)
+    get team_path(teams(:warthogs))
+    assert_select "a.btn-gear", count: 0
   end
 
   test "the leaderboard is hidden from users who are not members" do
     sign_in_as users(:stranger)
     get team_path(teams(:warthogs))
 
-    assert_select ".leaderboard", count: 0
+    assert_select ".ladder--board", count: 0
   end
 
   test "create builds a new team and makes the creator admin" do

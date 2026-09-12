@@ -2,8 +2,8 @@ require "test_helper"
 
 class StatLineTest < ActiveSupport::TestCase
   test "counts only appearances" do
-    # Jane is on the sheet for two games but took the field in one of them
-    line = StatLine.for(players(:jane).game_stats)
+    # Jane was named for two games and took the field in one of them
+    line = StatLine.for(players(:jane))
     assert_equal 1, line.games
   end
 
@@ -74,5 +74,57 @@ class StatLineTest < ActiveSupport::TestCase
     assert_equal 0.0, line.points_per_game
     assert_equal 0.0, line.points_per_season
     assert_not line.any?
+  end
+
+  # ── PLAYS ─────────────────────────────────────────────────────────────────
+
+  def record(kind, count = 1, fixture: fixtures(:played_with_stats), player: players(:john))
+    count.times { fixture.plays.create!(player: player, kind: kind) }
+  end
+
+  test "points counts plays, and can be dragged below a player's tries" do
+    record(:opposition_assist, 3)   # −6 against John's 21
+
+    assert_equal 15, players(:john).career_stats.points
+  end
+
+  test "a play is worth what it is worth, whichever way it points" do
+    record(:bomb_catch, 2)
+    record(:dropped_bomb)
+
+    line = players(:john).career_stats
+    assert_equal 2, line.bomb_catches
+    assert_equal 1, line.dropped_bombs
+    assert_equal 22, line.points   # 21 + 2 − 1
+  end
+
+  test "both negatives read as one number, and they stack" do
+    record(:dropped_bomb)
+    record(:opposition_assist)
+
+    assert_equal 2, players(:john).career_stats.negative_plays
+  end
+
+  # The Social league ranks on Touchdowns alone, so a Player has two point
+  # totals and any surface showing one has to say which.
+  test "touchdown points leave plays out" do
+    record(:bomb_catch, 5)
+
+    line = players(:john).career_stats
+    assert_equal 21, line.touchdown_points
+    assert_equal 26, line.points
+  end
+
+  # ── CATCH RATE ────────────────────────────────────────────────────────────
+
+  test "every contested kick-off is one or the other, so the rate falls out" do
+    record(:bomb_catch, 7)
+    record(:dropped_bomb, 1)
+
+    assert_equal 88, players(:john).career_stats.catch_rate
+  end
+
+  test "catch rate is nil until somebody has gone up for one" do
+    assert_nil players(:john).career_stats.catch_rate
   end
 end

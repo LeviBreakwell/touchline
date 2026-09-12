@@ -14,7 +14,11 @@ class LeaderboardTest < ActiveSupport::TestCase
         date: Time.zone.parse("2026-07-06 19:40") + (round * 7).days
       )
       lineup.each do |player, (tries, assists)|
-        fixture.game_stats.create!(player: player, tries: tries, assists: assists, played: true)
+        fixture.appearances.create!(player: player)
+        tries.times   { fixture.touchdowns.create!(scorer: player) }
+        # Who they passed to is not what these tests are about, and a lineup of
+        # one has nobody to pass to — so the assists take the imported shape.
+        assists.times { fixture.touchdowns.create!(assister: player) }
       end
     end
     season

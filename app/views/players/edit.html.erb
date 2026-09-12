@@ -1,7 +1,7 @@
 <% content_for :title, "Edit #{@player.name} – #{@team.name}" %>
 
 <% if Current.user&.admin_of?(@team) %>
-  <%= back_button "Roster", team_players_path(@team) %>
+  <%= back_button "Team settings", team_settings_path(@team) %>
 <% else %>
   <%= back_button @team.name, team_path(@team) %>
 <% end %>

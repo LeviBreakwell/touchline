@@ -1,0 +1,12 @@
+<%# Share sheet where the phone has one, clipboard where it doesn't. %>
+<button type="button" class="btn btn-secondary btn-sm" onclick="(function(btn){
+  var url = <%= url.to_json %>;
+  if (navigator.share) {
+    navigator.share({ title: <%= title.to_json %>, text: <%= text.to_json %>, url: url }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(url).then(function(){
+      var was = btn.textContent; btn.textContent = 'Copied!';
+      setTimeout(function(){ btn.textContent = was }, 2000);
+    });
+  }
+})(this)"><%= label %></button>

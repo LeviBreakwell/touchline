@@ -1,62 +1,37 @@
 <% content_for :title, "#{@team.name} – Touchline" %>
 
-<div class="section-header" style="margin-bottom:1.5rem;">
-  <div>
-    <h1><%= @team.name %></h1>
-    <p class="card-meta"><%= @team.location %> · TRL</p>
-  </div>
-  <div style="display:flex;align-items:center;gap:0.5rem;">
-    <% if @membership&.admin? %>
-      <button type="button" class="btn btn-secondary btn-sm" onclick="(function(btn){
-        var url = <%= team_invite_url(@team.invite_token).to_json %>;
-        if (navigator.share) {
-          navigator.share({ title: <%= "Join #{@team.name} on Touchline".to_json %>, text: <%= "Join #{@team.name} on Touchline to track our stats".to_json %>, url: url }).catch(function(){});
-        } else {
-          navigator.clipboard.writeText(url).then(function(){ btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Invite' }, 2000) });
-        }
-      })(this)">Invite</button>
-      <details style="position:relative;">
-        <summary class="badge badge-admin" style="cursor:pointer;list-style:none;">Admin</summary>
-        <div style="position:absolute;right:0;top:calc(100% + 0.35rem);background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:0.5rem;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-          <%= button_to "Reset invite link", regenerate_invite_team_path(@team), method: :patch,
-                class: "btn btn-secondary btn-sm",
-                data: { turbo_confirm: "This will invalidate the current invite link. Anyone with the old link won't be able to join. Continue?" } %>
+<%# ── THE TEAM TAB: the leaderboard, over whichever scope you pick ── %>
+<div class="tab-head">
+  <div class="tab-head-title">
+    <% if nav_teams.many? %>
+      <details class="team-switch">
+        <summary><h1><%= @team.name %></h1><%= chevron_down %></summary>
+        <div class="team-switch-menu">
+          <% nav_teams.each do |team| %>
+            <%= link_to team.name, team_path(team),
+                  class: "nav-dropdown-link #{"is-current" if team == @team}" %>
+          <% end %>
+          <div class="nav-dropdown-divider"></div>
+          <%= link_to "Connect another team", trl_locations_path, class: "nav-dropdown-link" %>
         </div>
       </details>
+    <% else %>
+      <h1><%= @team.name %></h1>
+    <% end %>
+    <p class="card-meta">
+      <%= @team.location %><%= " · #{@team.division_name}" if @team.division_name.present? %>
+    </p>
+  </div>
+
+  <div class="tab-head-actions">
+    <% if @membership&.admin? %>
+      <%= link_to team_settings_path(@team), class: "btn-gear", title: "Team settings",
+                  aria: { label: "Team settings" } do %><%= gear_icon %><% end %>
     <% elsif @membership&.accepted? %>
       <span class="badge">Member</span>
     <% end %>
   </div>
 </div>
-
-<% if @current_season %>
-  <%= link_to team_season_path(@team, @current_season), class: "btn btn-primary btn-full", style: "margin-bottom:1.25rem;" do %>
-    <%= @current_season.name %> &rarr;
-  <% end %>
-<% elsif @team.fixtures_synced_at.nil? %>
-  <div class="card">
-    <p class="card-meta">Fixtures syncing…</p>
-  </div>
-<% else %>
-  <div class="card">
-    <p style="margin-bottom:0.5rem;">No fixtures found — the sync may have failed.</p>
-    <p class="card-meta" style="margin-bottom:0.75rem;">Last attempted <%= time_ago_in_words(@team.fixtures_synced_at) %> ago.</p>
-    <% if @membership&.admin? %>
-      <%= button_to "Retry sync", sync_team_path(@team), method: :post, class: "btn btn-secondary btn-sm" %>
-    <% end %>
-  </div>
-<% end %>
-
-<%# ── MY PLAYER ── %>
-<% if @membership&.accepted? && @my_player %>
-  <div class="card" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
-    <div style="flex:1;">
-      <div style="font-size:0.78rem;color:var(--gray-400);margin-bottom:0.1rem;">Your player</div>
-      <div style="font-weight:500;"><%= @my_player.name %></div>
-    </div>
-    <%= link_to "Edit name", edit_team_player_path(@team, @my_player), class: "btn btn-secondary btn-sm" %>
-  </div>
-<% end %>
 
 <%# ── CLAIM PLAYER PROMPT ── %>
 <% if @membership&.accepted? && @my_player.nil? && @unclaimed_players&.any? %>
@@ -65,36 +40,55 @@
     <div class="claim-prompt-subtitle">Tap your name so your stats show up correctly.</div>
     <div class="claim-prompt-list">
       <% @unclaimed_players.each do |player| %>
-        <%= button_to player.name, claim_team_player_path(@team, player), method: :patch,
-              class: "claim-btn" %>
+        <%= button_to player.name, claim_team_player_path(@team, player), method: :patch, class: "claim-btn" %>
       <% end %>
     </div>
   </div>
 <% end %>
 
-<%# ── LEADERBOARD ── %>
-<% if @leaderboard&.any? || @leaderboard_seasons&.many? %>
-  <h2 style="margin-bottom:0.5rem;">Leaderboard</h2>
-
-  <% if @leaderboard_seasons.many? %>
-    <div class="filter-chips">
-      <%= link_to "All time", team_path(@team), class: "chip #{"chip-active" if @leaderboard_season.nil?}" %>
+<%# ── SCOPE ──
+    A dropdown rather than chips: two seasons a year is seven chips after three
+    years, wrapping across a phone. %>
+<% if @leaderboard_seasons&.any? %>
+  <div class="scope-row" data-controller="nav-select">
+    <select class="scope-select" data-action="change->nav-select#go" aria-label="Leaderboard scope">
+      <option value="<%= team_path(@team) %>" <%= "selected" if @leaderboard_season.nil? %>>All time</option>
       <% @leaderboard_seasons.each do |season| %>
-        <%= link_to season.name, team_path(@team, season_id: season.id),
-              class: "chip #{"chip-active" if @leaderboard_season == season}" %>
+        <option value="<%= team_path(@team, season_id: season.id) %>"
+                <%= "selected" if @leaderboard_season == season %>><%= season.name %></option>
       <% end %>
-    </div>
-  <% end %>
+    </select>
+    <% if @team.seasons.any? && nav_season %>
+      <%= link_to "Fixtures →", team_season_path(@team, nav_season), class: "scope-link" %>
+    <% end %>
+  </div>
+<% end %>
 
-  <% if @leaderboard.any? %>
-    <div class="card" style="padding:0;margin-bottom:1.25rem;">
-      <%= render "shared/leaderboard", rows: @leaderboard, team: @team %>
-    </div>
+<%# ── LEADERBOARD ── %>
+<% if @membership&.accepted? || @leaderboard&.any? %>
+  <% if @leaderboard&.any? %>
+    <%= render "shared/leaderboard", rows: @leaderboard %>
   <% else %>
     <div class="empty" style="margin-bottom:1.25rem;">
       <p>No stats recorded for <%= @leaderboard_season&.name || "this team" %> yet.</p>
+      <p class="card-meta">Only players who have taken the field are ranked.</p>
     </div>
   <% end %>
+<% end %>
+
+<%# ── SYNC STATE ── %>
+<% if @team.seasons.none? %>
+  <div class="card">
+    <% if @team.fixtures_synced_at.nil? %>
+      <p class="card-meta">Fixtures syncing…</p>
+    <% else %>
+      <p style="margin-bottom:0.5rem;">No fixtures found — the sync may have failed.</p>
+      <p class="card-meta" style="margin-bottom:0.75rem;">Last attempted <%= time_ago_in_words(@team.fixtures_synced_at) %> ago.</p>
+      <% if @membership&.admin? %>
+        <%= button_to "Retry sync", sync_team_path(@team), method: :post, class: "btn btn-secondary btn-sm" %>
+      <% end %>
+    <% end %>
+  </div>
 <% end %>
 
 <% if Current.user %>
@@ -103,29 +97,6 @@
   <% elsif @membership.pending? %>
     <div class="card" style="text-align:center;margin-top:1rem;">
       <p class="card-meta">Your join request is pending — an admin will approve you shortly.</p>
-    </div>
-  <% end %>
-
-  <% if @membership&.admin? %>
-    <div class="divider"></div>
-    <% players_count = @team.players.count %>
-    <div data-controller="dialog">
-      <% if players_count.zero? %>
-        <div class="card" style="background:var(--green-light);border:none;margin-bottom:1rem;">
-          <div style="font-weight:600;color:var(--green-dark);margin-bottom:0.25rem;">Add your players to start tracking stats</div>
-          <div style="font-size:0.85rem;color:var(--green-dark);margin-bottom:0.75rem;">Stats can't be recorded until the roster is set up.</div>
-          <%= link_to "Add a player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
-                data: { action: "dialog#open" } %>
-        </div>
-      <% end %>
-      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-        <%= link_to "Add player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
-              data: { action: "dialog#open" } %>
-        <%= link_to "Roster (#{players_count})", team_players_path(@team), class: "btn btn-secondary btn-sm" %>
-        <% pending_count = @team.team_memberships.pending.count %>
-        <%= link_to "Members#{pending_count > 0 ? " (#{pending_count} pending)" : ""}", team_memberships_path(@team), class: "btn btn-secondary btn-sm" %>
-      </div>
-      <%= render "players/add_player_dialog", team: @team, player: Player.new %>
     </div>
   <% end %>
 <% else %>

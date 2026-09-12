@@ -1,0 +1,25 @@
+<%# Three tabs are three scopes of one app, not three screens. They are hidden
+    while a game is being entered: the ladder wants every pixel, and a drag
+    toward the bottom card would end exactly where a 56px bar sits. %>
+<% if nav_team %>
+  <nav class="tab-bar" aria-label="Sections">
+    <%= link_to team_path(nav_team), class: "tab #{"tab--on" if current_tab == :team}",
+                aria: { current: ("page" if current_tab == :team) } do %>
+      <%= tab_icon(:team) %><span>Team</span>
+    <% end %>
+
+    <% if nav_season %>
+      <%= link_to team_season_path(nav_team, nav_season), class: "tab #{"tab--on" if current_tab == :season}",
+                  aria: { current: ("page" if current_tab == :season) } do %>
+        <%= tab_icon(:season) %><span>Season</span>
+      <% end %>
+    <% else %>
+      <span class="tab tab--dead"><%= tab_icon(:season) %><span>Season</span></span>
+    <% end %>
+
+    <%= link_to profile_path, class: "tab #{"tab--on" if current_tab == :profile}",
+                aria: { current: ("page" if current_tab == :profile) } do %>
+      <%= tab_icon(:profile) %><span>Profile</span>
+    <% end %>
+  </nav>
+<% end %>

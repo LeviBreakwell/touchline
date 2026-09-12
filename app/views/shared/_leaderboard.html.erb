@@ -1,29 +1,22 @@
-<%# rows: array of Leaderboard::Row, team: the Team they belong to %>
-<table class="leaderboard">
-  <thead>
-    <tr>
-      <th class="rank">#</th>
-      <th class="move-col"><span class="sr-only">Movement since last game</span></th>
-      <th>Player</th>
-      <th style="text-align:right;">G</th>
-      <th style="text-align:right;">T</th>
-      <th style="text-align:right;">A</th>
-      <th style="text-align:right;" class="points">Pts</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% rows.each_with_index do |row, i| %>
-      <tr>
-        <td class="rank"><%= i + 1 %></td>
-        <td class="move-col"><%= rank_movement(row) %></td>
-        <td>
-          <%= link_to row.player.name, team_player_path(team, row.player), class: "leaderboard-player" %><%= hot_streak_flame(row) %>
-        </td>
-        <td style="text-align:right;color:var(--gray-400);"><%= row.games %></td>
-        <td style="text-align:right;color:var(--gray-600);"><%= row.tries %></td>
-        <td style="text-align:right;color:var(--gray-600);"><%= row.assists %></td>
-        <td style="text-align:right;" class="points"><%= row.points %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<%# The Team's board: the same card the ladder is entered on, one scope up.
+    rows: Leaderboard::Row %>
+<div class="ladder ladder--board">
+  <div class="ladder-head">
+    <span class="sp-rank"></span>
+    <span class="sp-avatar"></span>
+    <span class="sp-who"></span>
+    <span class="lcard-chips">
+      <span class="h-g" title="Games">G</span>
+      <span class="h-t" title="Tries">T</span>
+      <span class="h-a" title="Assists">A</span>
+      <span class="h-c" title="Bomb catches">C</span>
+      <span class="h-e" title="Dropped bombs and opposition assists">E</span>
+    </span>
+    <span class="sp-pts">PTS</span>
+  </div>
+
+  <% cosmetics = Progression.batch(rows.map { |row| row.player.user_id }) %>
+  <% rows.each_with_index do |row, index| %>
+    <%= render "shared/stat_card", row: row, rank: index + 1, mvp: false, cosmetics: cosmetics %>
+  <% end %>
+</div>

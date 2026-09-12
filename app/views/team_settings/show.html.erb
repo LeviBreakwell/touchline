@@ -1,0 +1,140 @@
+<% content_for :title, "Settings – #{@team.name}" %>
+
+<%= back_button @team.name, team_path(@team) %>
+<h1 style="margin-bottom:1.25rem;">Team settings</h1>
+
+<div data-controller="dialog" data-dialog-open-value="<%= @player&.errors&.any? || false %>">
+
+  <%# ── ROSTER ──
+      The roster is not the leaderboard: only Players with an appearance are
+      ranked, so a signing who has not played yet is invisible on the Team tab
+      and this is the only place they show up. %>
+  <div class="section-header">
+    <h2>Roster <span class="count"><%= @settings.roster.size %></span></h2>
+    <%= link_to "Add player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
+          data: { action: "dialog#open" } %>
+  </div>
+
+  <% if @settings.roster.empty? %>
+    <div class="empty">
+      <p>No players yet — stats can't be recorded until the roster is set up.</p>
+      <%= link_to "Add first player", new_team_player_path(@team), class: "btn btn-primary btn-sm",
+            data: { action: "dialog#open" } %>
+    </div>
+  <% else %>
+    <% @settings.roster.each do |player| %>
+      <div class="card settings-row">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:500;">
+            <%= link_to player.name, team_player_path(@team, player), class: "leaderboard-player" %>
+          </div>
+          <% if player.user %>
+            <div class="card-meta">Claimed by <%= player.user.name %></div>
+          <% elsif player.email.present? %>
+            <div class="card-meta">Links up when <%= player.email %> signs up</div>
+          <% else %>
+            <div class="card-meta">Roster only · no account</div>
+          <% end %>
+        </div>
+        <% unless player.user %>
+          <%= render "shared/share_button", label: "Invite",
+                url: team_invite_url(@team.invite_token, player_id: player.id),
+                title: "Join #{@team.name} on Touchline",
+                text: "Join #{@team.name} as #{player.name}" %>
+        <% end %>
+        <%= link_to "Edit", edit_team_player_path(@team, player), class: "btn btn-secondary btn-sm" %>
+        <%= button_to "Remove", team_player_path(@team, player), method: :delete,
+              class: "btn btn-secondary btn-sm", data: { turbo_confirm: "Remove #{player.name}?" } %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= render "players/add_player_dialog", team: @team, player: @player || Player.new %>
+</div>
+
+<%# ── INVITE LINK ── %>
+<div class="divider"></div>
+<h2 style="margin-bottom:0.5rem;">Invite link</h2>
+<div class="card settings-row">
+  <div style="flex:1;">
+    <div class="card-meta">Anyone with this link can ask to join.</div>
+  </div>
+  <%= render "shared/share_button", label: "Share",
+        url: team_invite_url(@team.invite_token),
+        title: "Join #{@team.name} on Touchline",
+        text: "Join #{@team.name} on Touchline to track our stats" %>
+  <%= button_to "Reset", regenerate_invite_team_path(@team), method: :patch,
+        class: "btn btn-secondary btn-sm",
+        data: { turbo_confirm: "This invalidates the current link. Anyone holding the old one won't be able to join. Continue?" } %>
+</div>
+
+<%# ── JOIN REQUESTS ── %>
+<div class="divider"></div>
+<h2 style="margin-bottom:0.5rem;">
+  Members <span class="count"><%= @settings.accepted.size %></span>
+</h2>
+
+<% if @settings.pending.any? %>
+  <div class="card" style="border-color:var(--green);margin-bottom:0.75rem;">
+    <div style="font-weight:600;margin-bottom:0.5rem;">Join requests</div>
+    <% @settings.pending.each do |membership| %>
+      <div class="settings-row" style="padding:0.4rem 0;">
+        <div style="flex:1;min-width:0;">
+          <div><%= membership.user.name %></div>
+          <div class="card-meta"><%= membership.user.email_address %></div>
+        </div>
+        <%= button_to "Approve", team_membership_path(@team, membership), method: :patch,
+              params: { status: "accepted" }, class: "btn btn-primary btn-sm", data: { turbo: false } %>
+        <%= button_to "Decline", team_membership_path(@team, membership), method: :patch,
+              params: { status: "rejected" }, class: "btn btn-secondary btn-sm", data: { turbo: false } %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<% @settings.accepted.each do |membership| %>
+  <div class="card settings-row">
+    <div style="flex:1;min-width:0;">
+      <div><%= membership.user.name %></div>
+      <div class="card-meta"><%= membership.user.email_address %></div>
+    </div>
+    <span class="badge <%= "badge-admin" if membership.admin? %>"><%= membership.role.capitalize %></span>
+    <% if membership.admin? %>
+      <%= button_to "Remove admin", team_membership_path(@team, membership), method: :patch,
+            params: { role: "member" }, class: "btn btn-secondary btn-sm" %>
+    <% else %>
+      <%= button_to "Make admin", team_membership_path(@team, membership), method: :patch,
+            params: { role: "admin" }, class: "btn btn-secondary btn-sm" %>
+    <% end %>
+    <% unless membership.user_id == Current.user.id %>
+      <%= button_to "Kick", team_membership_path(@team, membership), method: :delete,
+            class: "btn btn-secondary btn-sm",
+            data: { turbo_confirm: "Remove #{membership.user.name} from the team? Their player will be unclaimed." } %>
+    <% end %>
+  </div>
+<% end %>
+
+<%# ── SPAWTZ ── %>
+<div class="divider"></div>
+<h2 style="margin-bottom:0.5rem;">TRL sync</h2>
+<div class="card">
+  <% if @settings.linked_to_spawtz? %>
+    <div class="settings-row" style="margin-bottom:0.5rem;">
+      <div style="flex:1;">
+        <div style="font-weight:500;"><%= @team.division_name.presence || "Linked to TRL" %></div>
+        <div class="card-meta">
+          <% if @settings.last_synced %>
+            Fixtures and results last synced <%= time_ago_in_words(@settings.last_synced) %> ago.
+          <% else %>
+            Waiting on the first sync.
+          <% end %>
+        </div>
+      </div>
+      <%= button_to "Sync now", sync_team_path(@team), method: :post, class: "btn btn-secondary btn-sm" %>
+    </div>
+    <%= link_to "Re-link to a different TRL team", new_team_spawtz_setup_path(@team), class: "card-meta" %>
+  <% else %>
+    <p style="margin-bottom:0.5rem;">This team isn't linked to TRL yet, so there are no fixtures to enter stats against.</p>
+    <%= link_to "Link to TRL", new_team_spawtz_setup_path(@team), class: "btn btn-primary btn-sm" %>
+  <% end %>
+</div>
