@@ -2,7 +2,9 @@
 
 The spec for the bundle charted in [#14](https://github.com/LeviBreakwell/touchline/issues/14): a new stat entry screen, two new stat types, a linked event model, XP and accolades, a three-tab navigation, and a rebuilt career page.
 
-Every decision here came from a ticket; each section names the one that owns it. Where a decision reversed something the codebase already believed, the reversal is stated rather than glossed. Nothing in this document has been built.
+Every decision here came from a ticket; each section names the one that owns it. Where a decision reversed something the codebase already believed, the reversal is stated rather than glossed.
+
+**Status — 12 September 2026. Every wave is built.** The scraper's finals shift is fixed and it now captures the division and the ladder; the three tables have replaced `GameStat` and every reader counts off them; `StatSheet` is gone; the match ladder is the entry screen; the three tabs are the navigation; the seventeen asset files exist; XP, levels, accolades and cosmetics are in; and the career page carries the form indicator. What is left is §12 — the decisions this document deliberately did not make.
 
 ---
 
@@ -314,13 +316,13 @@ The page shows the **Team-inclusive** point total and **must label it**, since #
 
 ## 9. Build order
 
-### Wave 0 — ship now, independent of everything
+### Wave 0 — ship now, independent of everything ✅ **built**
 
 **Fix the finals cell shift in `SpawtzScraper`.** This is a live bug corrupting production data today: a finals row has six cells to an ordinary row's five, the parser reads one place left, and `Time.parse` accepts the shifted string rather than rejecting it. Every finals match ever played is stored **at midnight, with the court name as the opponent, and no score** — `awaiting_result` forever, and `prune_withdrawn` will not clean it up.
 
 Fixing it *is* "win a grand final". Add a cell-count assertion while there: a row is 5 cells or 6, and anything else means Spawtz changed.
 
-### Wave 1 — the foundation, sequential and unavoidable
+### Wave 1 — the foundation, sequential and unavoidable ✅ **built**
 
 1. **Schema**: `touchdowns`, `plays`, `appearances`. `Touchdown.scorer_player_id` nullable.
 2. **Migration** per §1. One way.
@@ -329,21 +331,21 @@ Fixing it *is* "win a grand final". Add a cell-count assertion while there: a ro
 
 Nothing else can start until the reads come off the new tables.
 
-### Wave 2 — parallel
+### Wave 2 — parallel ✅ **built**
 
 - **Navigation** (§7) — touches no stat code.
 - **Ladder scrape + division capture** (§9 notes) — independent of the app's own model.
 - **Art** (§6) — 5 SVGs and a notices line.
 
-### Wave 3 — the entry screen
+### Wave 3 — the entry screen ✅ **built**
 
-The ladder (§4). Depends on wave 1 for the model and wave 2 for where it sits.
+The ladder (§4). Depends on wave 1 for the model and wave 2 for where it sits — built ahead of wave 2 on the fixture page it already had, because retiring `StatSheet` leaves the app with no writer until it exists.
 
-### Wave 4 — progression
+### Wave 4 — progression ✅ **built**
 
 XP and levels first (§5), then accolades on top of them, then cosmetics on top of accolades. Each needs the one before it.
 
-### Wave 5 — the career page
+### Wave 5 — the career page ✅ **built**
 
 §8. Wants levels, accolades and cosmetics to exist before it can show them.
 
@@ -351,9 +353,9 @@ XP and levels first (§5), then accolades on top of them, then cosmetics on top 
 
 ## 10. ADRs owed
 
-1. **Supersede [ADR 0002](adr/0002-aggregate-game-stats-not-individual-stat-records.md)** — record that its two objections still stand and were *answered* rather than defied: `game_time` stays gone, and the GROUP BY stays confined to `StatLine`/`Leaderboard`, which already aggregate per-appearance in Ruby.
-2. **Retiring `StatSheet`** — a deliberate loosening of an invariant the codebase defended in three places.
-3. **The asset decision** — `mask-image`, hand-written geometry, borrowed glyphs. Evidence in `research/art-generation.md`.
+1. ✅ **Supersede [ADR 0002](adr/0002-aggregate-game-stats-not-individual-stat-records.md)** — [ADR 0003](adr/0003-count-rows-supersedes-aggregate-game-stats.md). — record that its two objections still stand and were *answered* rather than defied: `game_time` stays gone, and the GROUP BY stays confined to `StatLine`/`Leaderboard`, which already aggregate per-appearance in Ruby.
+2. ✅ **Retiring `StatSheet`** — [ADR 0004](adr/0004-retire-the-stat-sheet.md). A deliberate loosening of an invariant the codebase defended in three places.
+3. ✅ **The asset decision** — [ADR 0005](adr/0005-draw-the-geometry-borrow-the-glyphs.md). `mask-image`, hand-written geometry, borrowed glyphs. Evidence in `research/art-generation.md`.
 
 ---
 
@@ -361,20 +363,20 @@ XP and levels first (§5), then accolades on top of them, then cosmetics on top 
 
 Not part of this bundle; found while reading, and real.
 
-- 🔴 **The finals cell shift** — §9 wave 0. Corrupting data now.
+- ✅ **The finals cell shift** — fixed, with a cell-count assertion and the round label kept in `Fixture#finals_label`, which is what "win a grand final" will read.
 - 🟡 **`official_tries = our_score` is false in Mixed.** TRL scores a female try as 2 points, so a 4-try Mixed team publishes 6 and a sheet claiming 6 tries verifies — the ceiling **fails open**. Deferred by decision. #27 removed the reason it looked unsolvable: Spawtz names the division on a page the app already reads. It still cannot know a scorer's gender.
-- 🟡 **`Season` has no date column.** `teams_controller.rb:35` orders by `created_at` — when the app first *synced* a season, not when it was played. The new dropdowns make it wrong the moment Spawtz backfills. Needs `MAX(fixtures.date)`.
-- 🟡 **The scraper discards `DivisionId`**, passing `0`. One league holds both a Mixed and a Men's division.
+- ✅ **`Season` has no date column.** Ordering by `created_at` answered when the app first *synced* a season, not when it was played. Fixed: `Season.by_recency` orders on the last fixture in each season.
+- ✅ **The scraper discards `DivisionId`**, passing `0`. Fixed: the division is read off the ladder the Team stands in, and the draw is asked for by division. The Team now carries `spawtz_division_id` and `division_name`, and each Season carries where the Team finished.
 - ⚪ **`app/views/pwa/service-worker.js` is entirely commented out** — no precache; assets rely wholly on HTTP caching.
 
 ---
 
 ## 12. Deliberately left open
 
-- **A non-gesture entry path.** Retiring `StatSheet` leaves tap-and-drag as the only writer: no keyboard route, no screen-reader route, no way to type up a backlog from a laptop. Every prototype variant required a pointer. **This needs a decision.**
+- **A non-gesture entry path.** Retiring `StatSheet` leaves tap-and-drag as the only writer: no keyboard route, no screen-reader route, no way to type up a backlog from a laptop. Every prototype variant required a pointer. **This still needs a decision** — it is the one thing in this document that was built around rather than answered.
 - **How Mixed verification should work**, given the app can know the division but not a scorer's gender.
-- **The Social league's grouping key** — almost certainly `DivisionId`, unconfirmed.
-- **Whether four border shapes are distinguishable at 38px in peripheral vision.** No specification addresses legibility; the #22 prototype renders all twelve tiers at real size, so it is a five-minute check on a phone.
-- **Seasonal reset / prestige** — whether XP and level are career-permanent.
-- **What a shared profile shows** to someone on a different team.
-- **Level-up announcement** — where, and whether anything is pushed.
+- **The Social league's grouping key** — `DivisionId`, now captured and confirmed against the live page: one league, two divisions, "Mixed 1/2" and "Men's".
+- **Whether four border shapes are distinguishable at 38px in peripheral vision.** No specification addresses legibility. All twelve tiers now render in the app itself, so it is a five-minute check on a phone rather than in a prototype.
+- **Seasonal reset / prestige** — whether XP and level are career-permanent. Built as permanent, because that is what "no cap, no soft cap" implies, but it was never decided.
+- **What a shared profile shows** to someone on a different team. The career page currently shows everyone the same thing.
+- **Level-up announcement** — where, and whether anything is pushed. Nothing announces a level today; you find it on your profile.

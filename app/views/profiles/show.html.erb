@@ -1,53 +1,43 @@
 <% content_for :title, "Profile – Touchline" %>
 
-<div class="section-header" style="margin-bottom:1rem;">
-  <div>
-    <h1><%= @user.name %></h1>
-    <p class="card-meta">
-      <%= @user.email_address %> · Joined <%= @user.created_at.strftime("%B %Y") %>
-    </p>
-  </div>
-</div>
+<%# ── THE PROFILE: what you have done, not the controls for saying it ──
+    The slots are a form and live behind Customise. This screen is the one you
+    hand somebody. %>
+<%= render "shared/identity", user: @user, progression: @progression, name: @user.name %>
 
-<h2 style="margin-bottom:0.5rem;">Career</h2>
-<div class="stat-grid">
-  <div class="stat-tile">
-    <div class="stat-tile-value accent"><%= @career.points %></div>
-    <div class="stat-tile-label">Points</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-tile-value"><%= @career.tries %></div>
-    <div class="stat-tile-label">Tries</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-tile-value"><%= @career.assists %></div>
-    <div class="stat-tile-label">Assists</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-tile-value"><%= @career.games %></div>
-    <div class="stat-tile-label">Games</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-tile-value"><%= @career.seasons %></div>
-    <div class="stat-tile-label">Seasons</div>
-  </div>
-  <div class="stat-tile">
-    <div class="stat-tile-value"><%= @career.points_per_game %></div>
-    <div class="stat-tile-label">Pts / game</div>
-  </div>
+<div class="section-header">
+  <h2 style="margin:0;">Showcase</h2>
+  <%= link_to "Customise", profile_slots_path, class: "btn btn-secondary btn-sm" %>
 </div>
+<%= render "shared/showcase", progression: @progression %>
 
-<% if @career.any? %>
-  <div class="card">
-    <dl style="margin:0;">
-      <div class="average-row"><dt>Tries per game</dt><dd><%= @career.tries_per_game %></dd></div>
-      <div class="average-row"><dt>Assists per game</dt><dd><%= @career.assists_per_game %></dd></div>
-      <div class="average-row"><dt>Points per season</dt><dd><%= @career.points_per_season %></dd></div>
-    </dl>
+<%# ── EVERYTHING EARNED ── %>
+<% if @progression.earned.any? %>
+  <h2 class="profile-heading">Accolades <span class="count"><%= @progression.earned.size %></span></h2>
+  <div class="accolade-list">
+    <% @progression.earned.each do |accolade, count| %>
+      <div class="accolade-row rarity-<%= accolade.rarity %>">
+        <%= accolade_glyph(accolade) %>
+        <div style="flex:1;min-width:0;">
+          <div class="accolade-name"><%= accolade.title %><%= " ×#{count}" if count > 1 %></div>
+          <div class="card-meta"><%= accolade.description %></div>
+        </div>
+        <div class="accolade-xp">+<%= accolade.xp * count %> XP</div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="empty">
+    <p>No accolades yet.</p>
+    <p class="card-meta">They come from playing — and from claiming a name that already has.</p>
   </div>
 <% end %>
 
-<h2 style="margin-top:1.25rem;margin-bottom:0.5rem;">Your players</h2>
+<%# ── CAREER ── %>
+<h2 class="profile-heading">Career</h2>
+<%= render "shared/career_totals", line: @career %>
+
+<h2 class="profile-heading">Your players</h2>
 <% if @players.empty? %>
   <div class="empty">
     <p>You're not linked to a player on any team yet.</p>
@@ -56,7 +46,7 @@
 <% else %>
   <% @players.each do |player| %>
     <% line = player.career_stats %>
-    <%= link_to team_player_path(player.team, player), class: "card", style: "display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;" do %>
+    <%= link_to team_player_path(player.team, player), class: "card settings-row", style: "text-decoration:none;color:inherit;" do %>
       <div style="flex:1;min-width:0;">
         <div class="card-title"><%= player.team.name %></div>
         <div class="card-meta"><%= player.name %> · <%= line.games %> games</div>
@@ -68,3 +58,8 @@
     <% end %>
   <% end %>
 <% end %>
+
+<h2 class="profile-heading">Account</h2>
+<div class="card">
+  <div class="card-meta"><%= @user.email_address %> · Joined <%= @user.created_at.strftime("%B %Y") %></div>
+</div>

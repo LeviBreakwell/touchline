@@ -92,16 +92,37 @@ end
 
 # tries: how many to hand out, defaulting to TRL's score. Passed explicitly for
 # a fixture entered before TRL published one.
-def record_stats(fixture, squad, absent, rng, tries: nil)
+#
+# Every try is a row, and an assist is a column on the try it produced — so an
+# assisted try picks its passer out of the rest of the squad, and nobody
+# assists themselves. Whoever took the field gets an Appearance; whoever did
+# not gets no row at all, because the row's existence is the fact.
+def record_stats(fixture, squad, _absent, rng, tries: nil)
   our = tries || fixture.our_score
-  tries   = spread(our, squad.size, rng)
-  assists = spread(rng.rand(0..our), squad.size, rng)
+  scorers = spread(our, squad.size, rng)
+  assisted = rng.rand(0..our)
 
-  squad.each_with_index do |player, i|
-    fixture.game_stats.create!(player: player, tries: tries[i], assists: assists[i], played: true)
+  squad.each { |player| fixture.appearances.create!(player: player) }
+
+  scorers.each_with_index do |count, i|
+    count.times do
+      assister = (squad - [ squad[i] ]).sample(random: rng) if assisted.positive?
+      assisted -= 1 if assister
+      fixture.touchdowns.create!(scorer: squad[i], assister: assister)
+    end
   end
-  absent.each do |player|
-    fixture.game_stats.create!(player: player, tries: 0, assists: 0, played: false)
+
+  # TRL restarts with a bomb at the start of each half and after every try, so
+  # a team receives four or five in a game and each one is caught or dropped by
+  # somebody. An opposition assist is much rarer, and never more than the other
+  # side actually scored.
+  rng.rand(4..5).times do
+    fixture.plays.create!(player: squad.sample(random: rng),
+                          kind: rng.rand(100) < 75 ? :bomb_catch : :dropped_bomb)
+  end
+
+  rng.rand(0..[ fixture.opponent_score.to_i, 2 ].min).times do
+    fixture.plays.create!(player: squad.sample(random: rng), kind: :opposition_assist)
   end
 
   fixture.refresh_stats_verification!
@@ -150,6 +171,19 @@ seasons.each do |spec|
   season.fixtures.create!(opponent_name: "Kenmore Kings", date: 6.days.from_now)
 end
 
+# ── Progression ───────────────────────────────────────────────────────────
+# Accolades are awarded, never computed, so the demo has to run the ledger for
+# them to exist. Then a title and a showcase, because an empty slot teaches
+# nothing about what the slot is for.
+User.where(id: team.players.select(:user_id)).find_each do |user|
+  AccoladeLedger.settle(user)
+
+  earned = Progression.new(user).earned.map { |accolade, _count| accolade.key }
+  next if earned.empty?
+
+  user.update!(title_key: earned.first, showcase_keys: earned.first(Progression::SHOWCASE_SLOTS))
+end
+
 puts <<~SUMMARY
 
   Demo data ready.
@@ -158,7 +192,8 @@ puts <<~SUMMARY
     Password   #{demo_password}
 
     #{team.name} — #{team.players.count} players, #{team.seasons.count} seasons, #{team.fixtures.count} fixtures
-    #{GameStat.count} game stats · #{team.team_memberships.pending.count} pending join request
+    #{Touchdown.count} touchdowns · #{Play.count} plays · #{Appearance.count} appearances · #{team.team_memberships.pending.count} pending join request
+    #{AccoladeAward.count} accolades awarded · #{team.players.filter_map(&:user).map { |u| "#{u.name.split.first} is level #{Progression.new(u).level}" }.to_sentence}
 
   Also seeded: riley@touchline.test (member) and casey@touchline.test (pending), both with password "password".
 SUMMARY

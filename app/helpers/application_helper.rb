@@ -17,10 +17,10 @@ module ApplicationHelper
     over_official:   [ "badge-over",     "OVER TRL" ]
   }.freeze
 
-  # Says where a Fixture's sheet stands against TRL. A Fixture nobody has
-  # entered stats for has nothing to verify yet, so it gets no badge.
+  # Says where a Fixture's record stands against TRL. A Fixture nobody has
+  # entered anything for has nothing to verify yet, so it gets no badge.
   def trl_status_badge(fixture)
-    return if fixture.game_stats.none?
+    return unless fixture.stats_entered?
 
     css, label = TRL_STATUS_BADGES.fetch(fixture.stats_status)
     tag.span(label, class: "badge #{css}")
@@ -100,13 +100,97 @@ module ApplicationHelper
       class: "move move-#{up ? 'up' : 'down'}", title: label, aria: { label: label })
   end
 
+  Scorer = Struct.new(:player, :tries, :assists) do
+    def points = (tries * Touchdown::TRY_POINTS) + (assists * Touchdown::ASSIST_POINTS)
+  end
+
   # The players a fixture card names: whoever actually put something on the
-  # board, biggest contribution first and alphabetical within a tie. Filtered
-  # and sorted in Ruby because the caller has already preloaded game_stats for
-  # the TRL badge — querying here would put one round trip on every card.
-  def fixture_scorers(fixture)
-    fixture.game_stats
-           .select { |stat| stat.tries.to_i.positive? || stat.assists.to_i.positive? }
-           .sort_by { |stat| [ -stat.points, stat.player.name ] }
+  # board, biggest contribution first and alphabetical within a tie. Counted in
+  # Ruby off rows the caller has already preloaded for the TRL badge, against a
+  # roster it looked up once — querying here would put a round trip on every
+  # card. An imported assist names nobody as scorer, so it lands under its
+  # assister and nowhere else.
+  def fixture_scorers(fixture, players_by_id)
+    tallies = Hash.new { |hash, player_id| hash[player_id] = Scorer.new(players_by_id[player_id], 0, 0) }
+
+    fixture.touchdowns.each do |touchdown|
+      tallies[touchdown.scorer_player_id].tries += 1 if touchdown.scorer_player_id
+      tallies[touchdown.assister_player_id].assists += 1 if touchdown.assister_player_id
+    end
+
+    tallies.values.select(&:player).sort_by { |scorer| [ -scorer.points, scorer.player.name ] }
+  end
+
+  GEAR_ICON = <<~SVG.html_safe
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.2.5.68.86 1.23.9H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="1.6"/></svg>
+  SVG
+
+  CHEVRON_DOWN = <<~SVG.html_safe
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  SVG
+
+  def gear_icon = GEAR_ICON
+  def chevron_down = CHEVRON_DOWN
+
+  FORM_UP   = %(<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3 14 12H2z" fill="currentColor"/></svg>).html_safe
+  FORM_DOWN = %(<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13 2 4h12z" fill="currentColor"/></svg>).html_safe
+  FORM_LEVEL = %(<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>).html_safe
+
+  # This season against the rest of a career: an arrow, a colour, and nothing
+  # else. Green and red are what the arrow means for this stat rather than
+  # which way it points — a rising drop count is a falling player.
+  #
+  # Too few games either side and the marker says so in its own way, because an
+  # arrow that is simply absent reads as "level".
+  def form_arrow(reading)
+    return tag.span(FORM_LEVEL, class: "form form-unknown", title: "Not enough games either side to tell yet") unless reading.certain?
+
+    icon, label = case reading.direction
+    when :up   then [ FORM_UP, "Up on career" ]
+    when :down then [ FORM_DOWN, "Down on career" ]
+    else            [ FORM_LEVEL, "Level with career" ]
+    end
+
+    css = reading.level? ? "form-level" : (reading.good? ? "form-good" : "form-bad")
+    tag.span(icon, class: "form #{css}", title: label, aria: { label: label })
+  end
+
+  # A border is a shape masked over a metal gradient. The shape is the file and
+  # the metal is a class, which is how four pieces of art are twelve tiers —
+  # see ADR 0005.
+  def border_ring(tier)
+    return if tier.nil?
+
+    tag.span(nil, class: "border-ring metal-#{tier.metal}",
+                  style: mask_of("borders/#{tier.shape}.svg"),
+                  aria: { hidden: true }, title: tier.name)
+  end
+
+  def accolade_glyph(accolade, size: nil)
+    tag.span(nil, class: "accolade-glyph", style: [ mask_of("accolades/#{accolade.glyph}.svg"), size ].compact.join(";"),
+                  aria: { hidden: true })
+  end
+
+  def mask_of(asset)
+    url = image_path(asset)
+    "-webkit-mask-image:url(#{url});mask-image:url(#{url})"
+  end
+
+  # One glyph per tab. Drawn rather than borrowed: three shapes at 20px is not
+  # worth a dependency, and each is a single path.
+  TAB_ICONS = {
+    team:    %(<path d="M3 13h3v6H3zM10.5 8h3v11h-3zM18 4h3v15h-3z" fill="currentColor"/>),
+    season:  %(<path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>),
+    profile: %(<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>)
+  }.freeze
+
+  def tab_icon(tab)
+    tag.svg(TAB_ICONS.fetch(tab).html_safe, width: 20, height: 20, viewBox: "0 0 24 24", aria: { hidden: true })
+  end
+
+  # Two letters is what fits inside a 38px disc, and a first name plus a
+  # surname is what a roster holds.
+  def player_initials(player)
+    player.name.split.first(2).map { |part| part[0] }.join.upcase
   end
 end

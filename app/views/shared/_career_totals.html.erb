@@ -1,0 +1,27 @@
+<%# The totals, and the two point columns a Player now has. locals: line %>
+<div class="stat-grid">
+  <div class="stat-tile">
+    <div class="stat-tile-value accent"><%= line.points %></div>
+    <div class="stat-tile-label">Points · team</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= line.tries %></div>
+    <div class="stat-tile-label">Tries</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= line.assists %></div>
+    <div class="stat-tile-label">Assists</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= line.games %></div>
+    <div class="stat-tile-label">Games</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= line.bomb_catches %></div>
+    <div class="stat-tile-label">Bomb catches</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-tile-value"><%= line.catch_rate ? "#{line.catch_rate}%" : "—" %></div>
+    <div class="stat-tile-label">Catch rate</div>
+  </div>
+</div>

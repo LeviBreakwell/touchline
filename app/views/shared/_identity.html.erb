@@ -1,0 +1,30 @@
+<%# Who somebody is, in the three things that say it: the border they have
+    reached, the title they chose, and the level underneath both.
+    locals: user, progression, name %>
+<% earned, needed = progression.progress %>
+<div class="identity">
+  <div class="identity-face">
+    <span class="identity-avatar">
+      <%= border_ring(progression.border) %><%= user.name.split.first(2).map { |part| part[0] }.join.upcase %>
+    </span>
+    <span class="level-badge metal-<%= progression.border&.metal || "silver" %>" style="<%= mask_of("borders/badge.svg") %>"></span>
+    <span class="level-number"><%= progression.level %></span>
+  </div>
+
+  <div class="identity-who">
+    <h1><%= name %></h1>
+    <p class="identity-title<%= " locked" unless progression.title %>">
+      <%= progression.title || "No title yet" %>
+    </p>
+    <div class="level-bar" role="img"
+         aria-label="Level <%= progression.level %>, <%= earned %> of <%= needed %> XP to the next">
+      <span style="width:<%= needed.zero? ? 0 : (earned * 100.0 / needed).round %>%"></span>
+    </div>
+    <p class="card-meta">
+      <%= progression.xp %> XP · <%= needed - earned %> to level <%= progression.level + 1 %>
+      <% if progression.next_border %>
+        · <%= progression.next_border.name %> at <%= progression.next_border.level %>
+      <% end %>
+    </p>
+  </div>
+</div>

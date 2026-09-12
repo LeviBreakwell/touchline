@@ -1,0 +1,21 @@
+<%# Three accolades pinned to the top of a profile — the only place accolade
+    art appears at all. Three at a time is what makes it a showcase rather than
+    clutter. locals: progression %>
+<div class="showcase">
+  <% progression.showcase.each do |accolade| %>
+    <div class="showcase-slot filled">
+      <%= accolade_glyph(accolade) %>
+      <span class="showcase-title"><%= accolade.title %></span>
+      <span class="showcase-note"><%= accolade.description %><%
+        count = progression.count_of(accolade.key)
+        %><%= " ×#{count}" if count > 1 %></span>
+    </div>
+  <% end %>
+
+  <% (Progression::SHOWCASE_SLOTS - progression.showcase.size).times do %>
+    <div class="showcase-slot">
+      <span class="showcase-empty"></span>
+      <span class="showcase-note">Empty</span>
+    </div>
+  <% end %>
+</div>

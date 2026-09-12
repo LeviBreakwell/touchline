@@ -31,3 +31,10 @@ production:
   sync_fixtures_9pm:
     class: SyncAllTeamsJob
     schedule: every day at 11am  # 9pm AEST
+
+  # Accolades are awarded, not computed, and the per-game ones wait until a
+  # game has settled — see AccoladeLedger. Overnight AEST, after the evening's
+  # sheets have been entered.
+  settle_accolades:
+    class: SettleAccoladesJob
+    schedule: every day at 4pm  # 2am AEST

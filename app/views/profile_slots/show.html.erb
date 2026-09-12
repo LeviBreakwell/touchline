@@ -1,0 +1,90 @@
+<% content_for :title, "Slots – Touchline" %>
+
+<%= back_button "Profile", profile_path %>
+
+<%# ── THE CLAIM PAYOFF ──
+    One screen at the only moment anyone is interested: what the banked history
+    earned, what it unlocked, and a title to put on. %>
+<% if @claimed %>
+  <div class="claimed-banner">
+    <div class="claimed-title">You're linked as <%= @claimed.name %></div>
+    <div class="claimed-note">
+      Everything <%= @claimed.team.name %> has already recorded against that name is yours:
+      <strong><%= @career.games %> <%= "game".pluralize(@career.games) %></strong>,
+      <strong><%= @progression.xp %> XP</strong>,
+      level <strong><%= @progression.level %></strong><%
+        if @progression.earned.any? %>, and <strong><%= @progression.earned.size %></strong>
+        <%= "accolade".pluralize(@progression.earned.size) %><% end %>.
+      Pick a title below.
+    </div>
+  </div>
+<% end %>
+
+<%= render "shared/identity", user: @user, progression: @progression, name: @user.name %>
+
+<%# ── THE THREE SLOTS ──
+    One slot, one source. The border is not here to be chosen: it is a rank,
+    and it has to mean the same thing on every card. %>
+<h2 class="profile-heading">Slots</h2>
+<%= form_with url: profile_slots_path, method: :patch, class: "slots" do %>
+  <div class="slot">
+    <div class="slot-label">Border</div>
+    <div class="slot-value"><%= @progression.border&.name&.capitalize || "None yet" %></div>
+    <div class="slot-note">
+      Automatic — the highest you have reached.
+      <% if @progression.next_border %>
+        <%= @progression.next_border.name.capitalize %> at level <%= @progression.next_border.level %>.
+      <% end %>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label">Title</div>
+    <select name="user[title_key]" class="scope-select">
+      <option value="">No title</option>
+      <% @progression.titles.each do |accolade| %>
+        <option value="<%= accolade.key %>" <%= "selected" if @user.title_key == accolade.key %>>
+          <%= accolade.title %>
+        </option>
+      <% end %>
+    </select>
+    <div class="slot-note">Chosen by you, from what you have earned.</div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label">Banner</div>
+    <select name="user[banner_key]" class="scope-select">
+      <option value="">No banner</option>
+      <% @progression.banners.each do |accolade| %>
+        <option value="<%= accolade.key %>" <%= "selected" if @user.banner_key == accolade.key %>>
+          <%= accolade.title %>
+        </option>
+      <% end %>
+    </select>
+    <div class="slot-note">Rare accolades only.</div>
+  </div>
+
+  <div class="slot">
+    <div class="slot-label">Showcase</div>
+    <% Progression::SHOWCASE_SLOTS.times do |index| %>
+      <select name="user[showcase_keys][]" class="scope-select" style="margin-bottom:0.35rem;">
+        <option value="">Empty</option>
+        <% @progression.titles.each do |accolade| %>
+          <option value="<%= accolade.key %>" <%= "selected" if @user.showcase_keys[index] == accolade.key %>>
+            <%= accolade.title %>
+          </option>
+        <% end %>
+      </select>
+    <% end %>
+    <div class="slot-note">Three at a time — the only place accolade art appears.</div>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-full">Save</button>
+<% end %>
+
+<% if @progression.earned.none? %>
+  <div class="empty">
+    <p>Nothing unlocked yet.</p>
+    <p class="card-meta">Titles come from accolades, and accolades come from playing.</p>
+  </div>
+<% end %>
