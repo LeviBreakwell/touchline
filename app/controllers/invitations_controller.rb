@@ -7,7 +7,7 @@ class InvitationsController < ApplicationController
 
     unless Current.user
       session[:return_to_after_authenticating] = request.url
-      @current_season = @team.seasons.order(created_at: :desc).first
+      @current_season = @team.seasons.by_recency.first
       @joining_as = @team.players.find_by(id: @player_id, user_id: nil) if @player_id.present?
       @leaderboard = season_leaderboard(@current_season) if @current_season
       return

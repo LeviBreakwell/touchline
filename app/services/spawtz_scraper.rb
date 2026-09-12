@@ -4,6 +4,12 @@ class SpawtzScraper
   BASE_SPAWTZ = "https://trl.spawtz.com"
   USER_AGENT = "Touchline/1.0"
 
+  # Date | Time | Court | Opposition | Result. A finals row carries the round's
+  # name — "Semi Final 1", "Grand Final" — in an extra cell in front of the
+  # date, and nothing else about it differs.
+  ORDINARY_CELLS = 5
+  FINALS_CELLS   = 6
+
   def initialize(team)
     @team = team
   end
@@ -13,26 +19,39 @@ class SpawtzScraper
 
     refresh_season_if_changed
 
+    # The standings come first: they are where the division is named, and the
+    # draw should be asked for by division rather than with the 0 the app used
+    # to send.
+    standings = fetch_standings
+    capture_division(standings)
+
     url = "#{BASE_SPAWTZ}/Leagues/TeamProfile?" + URI.encode_www_form(
       VenueId: @team.spawtz_venue_id,
       LeagueId: @team.spawtz_league_id,
       SeasonId: @team.spawtz_season_id,
-      DivisionId: 0,
+      DivisionId: @team.spawtz_division_id.presence || 0,
       TeamId: @team.spawtz_team_id
     )
 
     doc = Nokogiri::HTML(URI.open(url, "User-Agent" => USER_AGENT))
-    season = find_or_create_season(doc)
+    season = find_or_create_season(standings)
+    record_ladder(season, standings)
 
     seen_ids = []
 
     doc.css("table tr").each do |row|
       cells = row.css("td")
-      next if cells.size < 5
+      next if cells.size < ORDINARY_CELLS
+      next unless draw_row?(cells)
 
-      date_str   = "#{cells[0].text.strip} #{cells[1].text.strip}"
-      opponent   = cells[3].text.strip
-      result_str = cells[4].text.strip
+      # A finals row is the ordinary five cells with the round's name pushed in
+      # front of them, so everything the parser wants sits one place right.
+      offset = cells.size - ORDINARY_CELLS
+
+      date_str    = "#{cells[offset].text.strip} #{cells[offset + 1].text.strip}"
+      opponent    = cells[offset + 3].text.strip
+      result_str  = cells[offset + 4].text.strip
+      finals_label = offset.positive? ? cells[0].text.strip.presence : nil
 
       next if opponent.blank?
 
@@ -46,7 +65,8 @@ class SpawtzScraper
         date: date,
         opponent_name: opponent,
         our_score: our_score,
-        opponent_score: opponent_score
+        opponent_score: opponent_score,
+        finals_label: finals_label
       )
       fixture.save!
       seen_ids << fixture.id
@@ -62,6 +82,22 @@ class SpawtzScraper
   end
 
   private
+
+  # The draw publishes rows of one of exactly two shapes. Reading any other
+  # width as a fixture is how the finals shift went unnoticed for a season:
+  # Time.parse accepted the shifted string rather than rejecting it, so every
+  # final was stored at midnight with the court name as the opponent. A row
+  # that is neither shape means Spawtz has changed the page, and guessing at a
+  # new layout is exactly what must not happen — skip it and say so.
+  def draw_row?(cells)
+    return true if [ ORDINARY_CELLS, FINALS_CELLS ].include?(cells.size)
+
+    Rails.logger.error(
+      "SpawtzScraper: skipping a #{cells.size}-cell draw row for team #{@team.id} — " \
+      "expected #{ORDINARY_CELLS} or #{FINALS_CELLS}. The Spawtz layout has changed."
+    )
+    false
+  end
 
   # Spawtz publishes no per-match id — the fixture rows carry no link we could
   # key on — so a fixture's identity has to be reconstructed from the draw each
@@ -84,17 +120,17 @@ class SpawtzScraper
   # The draw is the source of truth, so a fixture TRL has dropped should go too.
   # Two guards keep that from eating real data: a scrape that parsed no rows at
   # all (page moved, season rolled, HTML changed shape) must never be read as
-  # "TRL cancelled everything", and anything already carrying a score or a stat
-  # sheet is left alone regardless — a half-parsed page must not be able to
-  # destroy entered stats. A stranded fixture with stats on it is a duplicate a
-  # human should look at, not one we should silently delete.
+  # "TRL cancelled everything", and anything already carrying a score or a
+  # single entered row is left alone regardless — a half-parsed page must not
+  # be able to destroy entered stats. A stranded fixture with stats on it is a
+  # duplicate a human should look at, not one we should silently delete.
   def prune_withdrawn(season, seen_ids)
     return if seen_ids.empty?
 
     season.fixtures
           .where.not(id: seen_ids)
           .where(our_score: nil, opponent_score: nil)
-          .where.missing(:game_stats)
+          .without_stats
           .find_each do |fixture|
       Rails.logger.info(
         "SpawtzScraper: pruning fixture #{fixture.id} (#{fixture.date} v #{fixture.opponent_name}) " \
@@ -117,25 +153,70 @@ class SpawtzScraper
     Rails.logger.error("SpawtzScraper#refresh_season_if_changed failed for team #{@team.id}: #{e.message}")
   end
 
-  def find_or_create_season(_doc)
+  def find_or_create_season(standings)
     season = @team.seasons.find_or_initialize_by(spawtz_season_id: @team.spawtz_season_id)
     if season.new_record? || season.name.start_with?("Season ")
-      season.name = fetch_competition_name || "Season #{@team.spawtz_season_id}"
+      season.name = competition_name(standings) || "Season #{@team.spawtz_season_id}"
       season.save!
     end
     season
   end
 
-  def fetch_competition_name
+  def fetch_standings
     url = "#{BASE_SPAWTZ}/Leagues/Standings?" + URI.encode_www_form(
       VenueId: @team.spawtz_venue_id,
       LeagueId: @team.spawtz_league_id,
       SeasonId: @team.spawtz_season_id
     )
-    doc = Nokogiri::HTML(URI.open(url, "User-Agent" => USER_AGENT))
-    doc.at_css("h1, h2")&.text&.strip&.sub(/ - Current Standings$/, "")
-  rescue OpenURI::HTTPError, SocketError
+    Nokogiri::HTML(URI.open(url, "User-Agent" => USER_AGENT))
+  rescue OpenURI::HTTPError, SocketError => e
+    Rails.logger.error("SpawtzScraper#fetch_standings failed for team #{@team.id}: #{e.message}")
     nil
+  end
+
+  def competition_name(standings)
+    standings&.at_css("h1, h2")&.text&.strip&.sub(/ - Current Standings$/, "")
+  end
+
+  # Spawtz publishes one standings table per division, each under an <h3> that
+  # names it, and every team in it links back to itself carrying the division
+  # it belongs to. So the division is found the only way it can be: by looking
+  # for ourselves in the ladders and reading off which one we are standing in.
+  def capture_division(standings)
+    link = team_link(standings)
+    return if link.nil?
+
+    table = link.ancestors("table").first
+    @team.update!(
+      spawtz_division_id: link[:href][/DivisionId=(\d+)/, 1],
+      division_name: table&.previous_element&.text&.strip.presence
+    )
+  end
+
+  # Where the Team stands in its division, which is the only place "finish top
+  # of the ladder" can come from. Re-read every sync, so it is the final
+  # position once the season stops moving.
+  def record_ladder(season, standings)
+    row = team_link(standings)&.ancestors("tr")&.first
+    return if row.nil?
+
+    rows = row.ancestors("table").first.css("tr")
+    # The first row is the header, and Spawtz gives a bye its own standing row.
+    contenders = rows.drop(1).reject { |tr| tr.at_css(".STTeamCell")&.text.to_s.strip.start_with?(".BYE") }
+
+    season.update!(
+      ladder_position: contenders.index(row)&.+(1),
+      ladder_size: contenders.size
+    )
+  end
+
+  # Our own name in whichever ladder it appears in, matched on the Spawtz team
+  # id rather than the name — two divisions can and do carry teams with nearly
+  # the same name. Read off the team cell specifically: the position cell in
+  # front of it holds Spawtz's tie-break tooltip, whose links have no href.
+  def team_link(standings)
+    standings&.css("table.STTable td.STTeamCell a")
+             &.find { |link| link[:href].to_s.include?("TeamId=#{@team.spawtz_team_id}") }
   end
 
   # "Mon 11 May 2026 7:40PM" → ActiveSupport::TimeWithZone
