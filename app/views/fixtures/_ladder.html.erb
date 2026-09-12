@@ -1,0 +1,35 @@
+<%# The ladder as it stands. Re-rendered whole after every gesture, so what is
+    on screen can never drift from the rows behind it.
+    locals: ladder, team, editable %>
+<div class="ladder<%= " ladder--editable" if editable %>">
+  <%# Completed assists arc down this gutter — drawn from the cards' own
+      positions, so they follow a reorder. %>
+  <svg class="ladder-gutter" data-match-ladder-target="gutter"
+       data-connections="<%= ladder.connections.map { |c| [ c.assister_id, c.scorer_id, c.count ] }.to_json %>"></svg>
+
+  <div class="ladder-head">
+    <span style="width:0.9rem"></span>
+    <span class="sp-avatar"></span>
+    <span class="sp-who"></span>
+    <span class="lcard-chips">
+      <span class="h-t" title="Tries">T</span>
+      <span class="h-a" title="Assists">A</span>
+      <span class="h-c" title="Bomb catches">C</span>
+      <span class="h-e" title="Dropped bombs and opposition assists">E</span>
+    </span>
+    <span class="sp-pts">PTS</span>
+  </div>
+
+  <% mvp = ladder.mvp %>
+  <% cosmetics = Progression.batch((ladder.played + ladder.sidelined).map { |row| row.player.user_id }) %>
+  <% ladder.played.each_with_index do |row, index| %>
+    <%= render "shared/stat_card", row: row, rank: index + 1, mvp: mvp&.player == row.player, cosmetics: cosmetics %>
+  <% end %>
+
+  <% if ladder.sidelined.any? %>
+    <div class="ladder-sideline">Didn&rsquo;t play · <%= ladder.sidelined.size %></div>
+    <% ladder.sidelined.each do |row| %>
+      <%= render "shared/stat_card", row: row, rank: nil, mvp: false, cosmetics: cosmetics %>
+    <% end %>
+  <% end %>
+</div>

@@ -1,149 +1,67 @@
 <% content_for :title, "vs #{@fixture.opponent_name} – #{@team.name}" %>
+<%# The ladder takes over the screen. A 56px bar sits exactly where a drag
+    toward the last card ends, and there is nowhere else to put it. %>
+<% content_for :suppress_tabs, true %>
 
 <%= back_button @season.name, team_season_path(@team, @season) %>
 
 <div class="section-header" style="margin-bottom:1rem;">
   <div>
     <h1>vs <%= @fixture.opponent_name %></h1>
-    <p class="card-meta"><%= @fixture.date&.strftime("%A %-d %B %Y") %></p>
+    <p class="card-meta">
+      <% if @fixture.final? %><strong><%= @fixture.finals_label %></strong> · <% end %>
+      <%= @fixture.date&.strftime("%A %-d %B %Y") %>
+    </p>
   </div>
-  <% if @fixture.played? %>
-    <div style="text-align:right;">
+  <div style="text-align:right;">
+    <% if @fixture.played? %>
       <div style="font-size:1.5rem;font-weight:700;line-height:1.1;"><%= @fixture.our_score %> – <%= @fixture.opponent_score %></div>
       <span class="badge badge-<%= @fixture.result %>"><%= @fixture.result.upcase %></span>
-      <%= trl_status_badge(@fixture) %>
-    </div>
-  <% else %>
-    <div style="text-align:right;">
+    <% else %>
       <span class="badge badge-tbd">Upcoming</span>
-      <%= trl_status_badge(@fixture) %>
-    </div>
-  <% end %>
+    <% end %>
+    <%= trl_status_badge(@fixture) %>
+  </div>
 </div>
 
-<% if @players.empty? %>
+<% if @team.players.none? %>
   <div class="empty">
     <p>No players on roster.</p>
     <% if Current.user&.admin_of?(@team) %>
-      <%= link_to "Add players", team_players_path(@team), class: "btn btn-primary btn-sm" %>
+      <%= link_to "Add players", team_settings_path(@team), class: "btn btn-primary btn-sm" %>
     <% end %>
   </div>
-<% else %>
-  <% if @is_member %>
-    <%= form_with url: bulk_team_season_fixture_game_stats_path(@team, @season, @fixture),
-                  method: :post,
-                  data: { controller: "stat-total", stat_total_official_value: @fixture.official_tries } do |f| %>
+<% elsif @editable %>
+  <div data-controller="match-ladder"
+       data-match-ladder-hold-value="400"
+       data-match-ladder-urls-value="<%= {
+         touchdowns:  team_season_fixture_touchdowns_path(@team, @season, @fixture),
+         plays:       team_season_fixture_plays_path(@team, @season, @fixture),
+         appearances: team_season_fixture_appearances_path(@team, @season, @fixture)
+       }.to_json %>">
 
-      <p class="stat-hint">Tick everyone who took the field — appearances feed each player&rsquo;s averages.</p>
-
-      <% if @fixture.official_tries %>
-        <p class="stat-hint stat-hint--trl" data-stat-total-target="capNotice">
-          TRL scored this game <%= @fixture.our_score %>&ndash;<%= @fixture.opponent_score %>, so the roster shares
-          <strong><%= @fixture.official_tries %></strong> <%= "try".pluralize(@fixture.official_tries) %>
-          and at most <%= @fixture.official_tries %> <%= "assist".pluralize(@fixture.official_tries) %>.
-        </p>
-      <% else %>
-        <p class="stat-hint stat-hint--trl">
-          TRL hasn&rsquo;t published this result yet, so there&rsquo;s no ceiling to enter against.
-          Whatever you record counts straight away and gets checked when the result lands.
-        </p>
-      <% end %>
-
-      <%# Pinned under the header: on a phone the roster scrolls past, and the
-          running total is what says how much of TRL's score is still unspent. %>
-      <div class="stat-total-bar">
-        <span class="stat-total-label">Team total</span>
-        <span class="stat-total-value" data-stat-total-target="total">
-          <%
-            played_count  = @game_stats.values.count(&:played)
-            total_tries   = @game_stats.values.sum(&:tries)
-            total_assists = @game_stats.values.sum(&:assists)
-            total_points  = (total_tries * 2) + total_assists
-            cap           = @fixture.official_tries
-          %>
-          <%= played_count %> played ·
-          <%= total_tries %><%= "/#{cap}" if cap %>T ·
-          <%= total_assists %><%= "/#{cap}" if cap %>A ·
-          <%= total_points %> pts
-        </span>
-      </div>
-
-      <div class="card" style="padding:0.5rem 1rem;margin-bottom:0.75rem;">
-        <% @players.each_with_index do |player, i| %>
-          <% stat = @game_stats[player.id] %>
-          <% played = stat ? stat.played : true %>
-          <div class="stat-row<%= " stat-row--out" unless played %>">
-            <label class="played-toggle" title="Played">
-              <input type="hidden" name="game_stats[<%= i %>][played]" value="0">
-              <input type="checkbox" name="game_stats[<%= i %>][played]" value="1"
-                     data-field="played" <%= "checked" if played %>
-                     data-action="change->stat-total#togglePlayed">
-              <span class="played-toggle-box" aria-hidden="true">&check;</span>
-            </label>
-
-            <div class="stat-player-info">
-              <div class="stat-player-name"><%= player.name %></div>
-              <div class="stat-player-pts" data-pts><%= stat ? (stat.tries * 2 + stat.assists) : 0 %> pts</div>
-            </div>
-
-            <input type="hidden" name="game_stats[<%= i %>][player_id]" value="<%= player.id %>">
-            <div class="stat-steppers">
-              <div class="stepper-group">
-                <div class="stepper-label">T</div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" data-action="click->stat-total#dec" data-field="tries">−</button>
-                  <span class="stepper-val" data-display="tries"><%= stat&.tries || 0 %></span>
-                  <button type="button" class="stepper-btn" data-action="click->stat-total#inc" data-field="tries">+</button>
-                </div>
-                <input type="number" name="game_stats[<%= i %>][tries]" value="<%= stat&.tries || 0 %>"
-                       min="0" max="99" style="display:none" data-field="tries">
-              </div>
-              <div class="stepper-group">
-                <div class="stepper-label">A</div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" data-action="click->stat-total#dec" data-field="assists">−</button>
-                  <span class="stepper-val" data-display="assists"><%= stat&.assists || 0 %></span>
-                  <button type="button" class="stepper-btn" data-action="click->stat-total#inc" data-field="assists">+</button>
-                </div>
-                <input type="number" name="game_stats[<%= i %>][assists]" value="<%= stat&.assists || 0 %>"
-                       min="0" max="99" style="display:none" data-field="assists">
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-
-      <button type="submit" class="btn btn-secondary btn-full"
-              data-stat-total-target="saveBtn">Save stats</button>
-    <% end %>
-
-  <% else %>
-    <div data-controller="stat-total">
-      <div class="card" style="padding:0.5rem 1rem;">
-        <% @players.each do |player| %>
-          <% stat = @game_stats[player.id] %>
-          <% missed = stat && !stat.played %>
-          <div class="stat-row<%= " stat-row--out" if missed %>">
-            <div class="stat-player-info">
-              <div class="stat-player-name"><%= link_to player.name, team_player_path(@team, player), class: "leaderboard-player" %></div>
-              <% if missed %><div class="stat-dnp">Did not play</div><% end %>
-            </div>
-            <div class="stat-readonly">
-              <div class="stat-readonly-item"><span class="stepper-label">T</span> <strong><%= stat&.tries || 0 %></strong></div>
-              <div class="stat-readonly-item"><span class="stepper-label">A</span> <strong><%= stat&.assists || 0 %></strong></div>
-              <div class="stat-readonly-pts"><%= stat ? (stat.tries * 2 + stat.assists) : 0 %> pts</div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-
-      <% if Current.user %>
-        <p style="text-align:center;font-size:0.85rem;color:var(--gray-400);margin-top:0.5rem;">Join the team to enter stats.</p>
-      <% else %>
-        <p style="text-align:center;font-size:0.85rem;color:var(--gray-400);margin-top:0.5rem;">
-          <%= link_to "Sign in", new_session_path %> to enter stats.
-        </p>
-      <% end %>
+    <div class="ladder-hint">
+      <p>Tap a card for a try · drag one card onto another for the assist · hold for everything else.</p>
+      <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="undo"
+              data-action="match-ladder#undo" hidden>Undo</button>
     </div>
-  <% end %>
+
+    <div data-match-ladder-target="board">
+      <%= render "fixtures/ladder", ladder: @ladder, editable: true %>
+    </div>
+
+    <svg class="drag-layer" data-match-ladder-target="dragLayer"></svg>
+    <div class="drag-chip" data-match-ladder-target="dragChip"></div>
+    <div class="ladder-toast" data-match-ladder-target="toast" role="status" aria-live="polite"></div>
+  </div>
+<% else %>
+  <%= render "fixtures/ladder", ladder: @ladder, editable: false %>
+
+  <p style="text-align:center;font-size:0.85rem;color:var(--gray-400);margin-top:0.75rem;">
+    <% if Current.user %>
+      Join the team to enter stats.
+    <% else %>
+      <%= link_to "Sign in", new_session_path %> to enter stats.
+    <% end %>
+  </p>
 <% end %>

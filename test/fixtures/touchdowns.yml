@@ -1,0 +1,23 @@
+# John's record, as rows. His assists carry no scorer: these are the counters
+# migrated from before #15, where the try an assist belonged to was never
+# recorded and cannot be recovered. A null scorer is the marker for that, and
+# matches nobody's try count — which is what these fixtures also exercise.
+
+# ── v WGD 13+, TRL has it 5–3: 3 tries, 1 assist ──
+johns_winter_try_one:    { fixture: played_with_stats, scorer: john }
+johns_winter_try_two:    { fixture: played_with_stats, scorer: john }
+johns_winter_try_three:  { fixture: played_with_stats, scorer: john }
+johns_winter_assist:     { fixture: played_with_stats, assister: john }
+
+# ── v Toowong Terrors, entered on the night, TRL has published nothing ──
+johns_early_try_one:     { fixture: awaiting_trl, scorer: john }
+johns_early_try_two:     { fixture: awaiting_trl, scorer: john }
+johns_early_try_three:   { fixture: awaiting_trl, scorer: john }
+johns_early_try_four:    { fixture: awaiting_trl, scorer: john }
+johns_early_assist_one:  { fixture: awaiting_trl, assister: john }
+johns_early_assist_two:  { fixture: awaiting_trl, assister: john }
+
+# ── v Paddington Panthers, the 2025 summer final ──
+johns_summer_try:        { fixture: summer_final, scorer: john }
+johns_summer_assist_one: { fixture: summer_final, assister: john }
+johns_summer_assist_two: { fixture: summer_final, assister: john }

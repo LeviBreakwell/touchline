@@ -2,7 +2,11 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
   resource :registration, only: %i[new create]
-  resource :profile, only: %i[show]
+  # The slots are a form, and a profile is not: somebody showing their card to
+  # a mate should not be looking at their own dropdowns.
+  resource :profile, only: %i[show] do
+    resource :slots, only: %i[show update], controller: "profile_slots"
+  end
 
   # TRL Australia browser — 3-step wizard to link a team
   scope "/find" do
@@ -16,17 +20,22 @@ Rails.application.routes.draw do
       patch :regenerate_invite
       post  :sync
     end
+    # Admin is one screen behind a gear, not a fourth tab: the roster, the
+    # invite link, join requests and the Spawtz link all live here.
+    resource :settings, only: %i[show], controller: "team_settings"
     resource :spawtz_setup, only: %i[new create]
     resource :membership, only: %i[create destroy], as: :join
-    resources :memberships, only: %i[index update destroy], controller: "team_memberships"
-    resources :players, only: %i[index show new create destroy edit update] do
-        member { patch :claim }
-      end
+    resources :memberships, only: %i[update destroy], controller: "team_memberships"
+    resources :players, only: %i[show new create destroy edit update] do
+      member { patch :claim }
+    end
     resources :seasons, only: %i[show] do
+      # The match ladder writes as it goes: one row per gesture, inserted or
+      # deleted. There is no sheet to submit.
       resources :fixtures, only: %i[show] do
-        resources :game_stats, only: [] do
-          collection { post :bulk }
-        end
+        resources :touchdowns,  only: %i[create destroy]
+        resources :plays,       only: %i[create destroy]
+        resources :appearances, only: %i[create destroy], param: :player_id
       end
     end
   end

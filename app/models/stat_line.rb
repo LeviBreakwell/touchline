@@ -1,45 +1,79 @@
-# A tally of a Player's tries, assists, appearances and seasons over some set of
-# GameStats, with the averages that fall out of it. Built by StatLine.for so the
-# same aggregation serves a season, a career, or anything in between.
+# A tally of a Player's tries, assists, Plays, appearances and seasons over some
+# slice of the record, with the averages that fall out of it. The same object
+# serves a season, a career, or anything in between.
+#
+# Nothing here is stored: tries are counted off Touchdowns, games off
+# Appearances. Verification is deliberately not a filter — a Player's own totals
+# move the moment a Member enters them. Only the cross-team Social league waits
+# on TRL, and .unconfirmed is the slice it subtracts.
 class StatLine
-  attr_reader :tries, :assists, :games, :seasons
+  attr_reader :tries, :assists, :games, :seasons, :plays
 
-  # Only appearances count — a GameStat with played false records that the
-  # Player did not take the field, so it contributes nothing to a stat line.
-  # Verification is deliberately not a filter here: a Player's own totals move
-  # the moment a Member enters the sheet. Only the cross-team social league
-  # waits on TRL — see StatLine.unconfirmed for the slice it will exclude.
-  def self.for(game_stats)
-    build(game_stats.played.joins(:fixture))
+  # players:  a Player, an id, an array of either, or a relation
+  # fixtures: the slice of the record to count over — a season, or everything
+  def self.for(players, fixtures: Fixture.all)
+    build(players, fixtures)
   end
 
   # The part of a stat line TRL has not confirmed. Counted in .for like
   # everything else; broken out so a Player can see which of their stats is
-  # still unchecked, and so the social league can subtract it.
-  def self.unconfirmed(game_stats)
-    build(game_stats.played.joins(:fixture).where(fixtures: { stats_verified: false }))
+  # still unchecked.
+  def self.unconfirmed(players, fixtures: Fixture.all)
+    build(players, fixtures.where(stats_verified: false))
   end
 
-  def self.build(scope)
-    tries, assists, games, seasons = scope.pick(Arel.sql(<<~SQL.squish))
-      COALESCE(SUM(game_stats.tries), 0),
-      COALESCE(SUM(game_stats.assists), 0),
-      COUNT(*),
-      COUNT(DISTINCT fixtures.season_id)
-    SQL
+  def self.build(players, fixtures)
+    fixture_ids = fixtures.select(:id)
 
-    new(tries: tries.to_i, assists: assists.to_i, games: games.to_i, seasons: seasons.to_i)
+    games, seasons = Appearance.where(player_id: players, fixture_id: fixture_ids)
+                               .joins(:fixture)
+                               .pick(Arel.sql("COUNT(*), COUNT(DISTINCT fixtures.season_id)"))
+
+    new(
+      tries:   Touchdown.where(fixture_id: fixture_ids, scorer_player_id: players).count,
+      assists: Touchdown.where(fixture_id: fixture_ids, assister_player_id: players).count,
+      plays:   Play.where(fixture_id: fixture_ids, player_id: players).group(:kind).count,
+      games:   games.to_i,
+      seasons: seasons.to_i
+    )
   end
   private_class_method :build
 
-  def initialize(tries: 0, assists: 0, games: 0, seasons: 0)
+  def initialize(tries: 0, assists: 0, games: 0, seasons: 0, plays: {})
     @tries = tries
     @assists = assists
     @games = games
     @seasons = seasons
+    @plays = plays
   end
 
-  def points = (tries * 2) + assists
+  def bomb_catches       = plays.fetch("bomb_catch", 0)
+  def dropped_bombs      = plays.fetch("dropped_bomb", 0)
+  def opposition_assists = plays.fetch("opposition_assist", 0)
+
+  # One column on a card, because both cost points and both are the same kind of
+  # thing to the person reading it. They stack — a dropped bomb the opposition
+  # scored from is both — so this can exceed the number of distinct incidents.
+  def negative_plays = dropped_bombs + opposition_assists
+
+  # Every kick-off a Player contests produces exactly one or the other, which is
+  # what makes this a rate rather than a guess. Nil until they have contested
+  # one: 0% and "never went up for it" are not the same statement.
+  def catch_rate
+    contested = bomb_catches + dropped_bombs
+    return nil if contested.zero?
+    (bomb_catches.to_f / contested * 100).round
+  end
+
+  # What the Social league ranks on: Touchdowns alone, since Plays are
+  # Team-local. A Player therefore has two point totals and any surface showing
+  # one has to say which.
+  def touchdown_points = (tries * Touchdown::TRY_POINTS) + (assists * Touchdown::ASSIST_POINTS)
+
+  def play_points = plays.sum { |kind, count| Play::POINTS.fetch(kind.to_sym) * count }
+
+  # The Team-inclusive total, and the one a Team's own board ranks on.
+  def points = touchdown_points + play_points
 
   def any? = games.positive?
 

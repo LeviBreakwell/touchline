@@ -1,13 +1,13 @@
 require "application_system_test_case"
 
-# The stepper enforces TRL's ceiling in the browser so a Member never builds a
-# sheet the server is only going to reject. The rules themselves live in
-# StatSheet and GameStat — these cover the stepper that fronts them.
+# The gestures, in a real browser. Every one of them writes a row as it goes:
+# there is no sheet and no submit, so what is on screen after a gesture is what
+# the server sent back.
 class StatEntryTest < ApplicationSystemTestCase
   setup do
     @team    = teams(:warthogs)
     @season  = seasons(:winter_2026)
-    @fixture = fixtures(:played_with_stats)   # TRL has this at 5
+    @fixture = fixtures(:played_no_stats)   # TRL has this at 10, nothing entered
     sign_in_as users(:member_user)
   end
 
@@ -21,112 +21,174 @@ class StatEntryTest < ApplicationSystemTestCase
     assert_selector "details.user-menu"
   end
 
-  def open_sheet
+  def open_ladder
     visit team_season_fixture_path(@team, @season, @fixture)
+    assert_selector ".ladder--editable"
   end
 
-  def row_for(player)
-    find(".stat-row", text: player.name)
+  def card_for(player) = find(".lcard[data-player-id='#{player.id}']")
+
+  def tally(player, column) = card_for(player).find(".lchip.#{column}").text.to_i
+
+  # The ladder writes as it goes, so the screen settling and the rows landing
+  # are two different observations. Capybara waits for the first; this waits
+  # for the second. A write that never lands still fails the test.
+  def eventually(timeout: 3)
+    deadline = Time.now + timeout
+    loop do
+      return if yield
+      flunk "timed out waiting for the write to land" if Time.now > deadline
+      sleep 0.05
+    end
   end
 
-  def plus(player, field)
-    row_for(player).find(".stepper-btn[data-field='#{field}']", text: "+")
+  def hold(player, ms: 600)
+    element = card_for(player)
+    page.driver.browser.action.click_and_hold(element.native).perform
+    sleep ms / 1000.0
   end
 
-  def minus(player, field)
-    row_for(player).find(".stepper-btn[data-field='#{field}']", text: "−")
+  test "a tap is a try" do
+    open_ladder
+
+    card_for(players(:john)).click
+
+    assert_text "John — try +2"
+    assert_equal 1, tally(players(:john), :t)
+    assert_equal 1, @fixture.entered_tries
   end
 
-  def value(player, field)
-    row_for(player).find("[data-display='#{field}']").text.to_i
+  test "the try lands on the board, not just on the card" do
+    open_ladder
+    card_for(players(:john)).click
+
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lcard-pts", text: "+2"
   end
 
-  test "the stepper stops at TRL's published try count" do
-    open_sheet
-    # John already has 3 of TRL's 5; spend the last two, then try for a sixth.
-    4.times { plus(players(:john), :tries).click }
+  test "the ladder re-sorts as stats land" do
+    open_ladder
+    # Jane is first alphabetically and so first while nobody has scored
+    assert_equal players(:jane).id.to_s, all(".lcard").first["data-player-id"]
 
-    assert_equal 5, value(players(:john), :tries)
-    assert_text "5/5T"
+    card_for(players(:john)).click
+
+    assert_text "John — try +2"
+    assert_equal players(:john).id.to_s, all(".lcard").first["data-player-id"]
   end
 
-  test "a refused increment says so rather than doing nothing" do
-    open_sheet
-    4.times { plus(players(:john), :tries).click }
-    plus(players(:john), :tries).click
-
-    assert_selector ".stepper--refused"
-    assert_selector ".stat-hint--refused"
-  end
-
-  test "the allowance is shared across the roster, not per player" do
-    open_sheet
-    2.times { plus(players(:john), :tries).click }   # team now on TRL's 5
-
-    plus(players(:jane), :tries).click
-
-    assert_equal 0, value(players(:jane), :tries)
-    assert_text "5/5T"
-  end
-
-  test "the plus buttons dim once the allowance is spent" do
-    open_sheet
-    2.times { plus(players(:john), :tries).click }
-
-    assert_selector ".stepper-btn--spent"
-  end
-
-  test "giving a try back frees exactly one for someone else" do
-    open_sheet
-    2.times { plus(players(:john), :tries).click }
-    minus(players(:john), :tries).click
-
-    plus(players(:jane), :tries).click
-    assert_equal 1, value(players(:jane), :tries)
-
-    plus(players(:jane), :tries).click
-    assert_equal 1, value(players(:jane), :tries)
-  end
-
-  test "assists carry their own allowance" do
-    open_sheet
-    2.times { plus(players(:john), :tries).click }   # tries spent
-
-    plus(players(:john), :assists).click
-    assert_equal 2, value(players(:john), :assists)
-  end
-
-  test "the running total sits directly above the roster" do
-    open_sheet
-
-    assert page.evaluate_script(<<~JS), "the total bar should be the roster's immediate previous sibling"
-      document.querySelector(".stat-total-bar").nextElementSibling
-        .contains(document.querySelector(".stat-row"))
+  # Read straight off the ring: the fill is the only thing that says how much
+  # of the hold is left, and it was wrong in two ways at once.
+  def ring_measure
+    page.evaluate_script(<<~JS)
+      (() => {
+        const ring = document.querySelector(".hold-ring");
+        if (!ring) return null;
+        const r = ring.getBoundingClientRect(), icon = ring.parentElement.getBoundingClientRect();
+        return {
+          offset: parseFloat(getComputedStyle(ring.querySelector("circle")).strokeDashoffset),
+          dx: Math.round((r.x + r.width / 2) - (icon.x + icon.width / 2)),
+          dy: Math.round((r.y + r.height / 2) - (icon.y + icon.height / 2))
+        };
+      })()
     JS
   end
 
-  test "the running total stays pinned under the header while the roster scrolls" do
-    8.times { |i| @team.players.create!(name: "Sub #{i}") }
-    page.driver.browser.manage.window.resize_to(420, 700)   # a phone, where this matters
-    open_sheet
+  # Both halves of this were wrong once. An inset ring measures from inside the
+  # icon's own border, so it sat 2px off it; and a transition started a frame
+  # after the ring lands has nothing to transition from if that frame beats the
+  # first committed style, so the ring came up already full instead of filling.
+  test "the hold ring fills, centred on the icon" do
+    open_ladder
+    page.driver.browser.action.click_and_hold(card_for(players(:john)).native).perform
 
-    page.execute_script("window.scrollTo(0, 600)")
-    assert page.evaluate_script("window.scrollY") > 100, "the roster needs to be long enough to scroll"
+    begin
+      sleep 0.08
+      early = ring_measure
+      sleep 0.16
+      later = ring_measure
 
-    header_bottom = page.evaluate_script("Math.round(document.querySelector('.site-header').getBoundingClientRect().bottom)")
-    bar_top       = page.evaluate_script("Math.round(document.querySelector('.stat-total-bar').getBoundingClientRect().top)")
-
-    assert_equal header_bottom, bar_top, "the total bar should sit flush under the header once stuck"
+      assert early, "the ring should be up while the finger is down"
+      assert_equal [ 0, 0 ], [ early["dx"], early["dy"] ], "the ring should be centred on the icon"
+      assert_operator early["offset"], :>, 0, "the ring should still be filling this early in the hold"
+      assert_operator later["offset"], :<, early["offset"], "the ring should fill as the hold goes on"
+    ensure
+      page.driver.browser.action.release.perform
+    end
   end
 
-  test "the pinned total keeps counting as rows further down change" do
-    8.times { |i| @team.players.create!(name: "Sub #{i}") }
-    page.driver.browser.manage.window.resize_to(420, 700)
-    open_sheet
+  test "a hold opens the play menu" do
+    open_ladder
+    hold(players(:john))
 
-    page.execute_script("window.scrollTo(0, 600)")
-    plus(players(:john), :assists).click
+    assert_selector ".play-menu"
+    assert_text "Bomb catch"
+    assert_text "Dropped bomb"
+    assert_text "Opposition assist"
+  end
 
-    assert_text "2/5A"
+  test "picking a play from the menu records it" do
+    open_ladder
+    hold(players(:john))
+    page.driver.browser.action.release.perform
+    click_on "Dropped bomb"
+
+    assert_text "John — dropped bomb"
+    assert_equal 1, tally(players(:john), :e)
+    assert_equal 1, @fixture.plays.count
+  end
+
+  test "the sideline is a menu item, and it takes them off the grass" do
+    open_ladder
+    hold(players(:jane))
+    page.driver.browser.action.release.perform
+    click_on "Didn't play"
+
+    assert_selector ".ladder-sideline"
+    assert_selector ".lcard.sidelined[data-player-id='#{players(:jane).id}']"
+    assert_not @fixture.appearances.exists?(player_id: players(:jane).id)
+  end
+
+  test "tapping a sidelined card brings them back on" do
+    @fixture.open_sideline!
+    @fixture.appearances.find_by(player_id: players(:jane).id).destroy!
+    open_ladder
+
+    card_for(players(:jane)).click
+
+    assert_text "Jane — played"
+    assert_no_selector ".lcard.sidelined"
+  end
+
+  test "undo takes the last row back off" do
+    open_ladder
+    card_for(players(:john)).click
+    # wait for the write to land before reading anything off the DOM
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lchip.t", text: "1"
+
+    click_on "Undo"
+
+    assert_text "Undone"
+    assert_equal 0, tally(players(:john), :t)
+    eventually { @fixture.entered_tries.zero? }
+  end
+
+  test "there is nothing to undo until something has been entered" do
+    open_ladder
+
+    assert_no_selector "button", text: "Undo"
+  end
+
+  # Going past TRL's published score is recorded and flagged, never refused —
+  # the refusal could only ever have fired on a game TRL had already scored.
+  test "the eleventh try in a game TRL scored 10 is still recorded" do
+    open_ladder
+    11.times { card_for(players(:john)).click }
+
+    # the writes are queued, so wait for the last one to land before reading
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lchip.t", text: "11"
+    eventually { @fixture.entered_tries == 11 }
+
+    assert_equal 11, @fixture.entered_tries
+    assert_equal :over_official, @fixture.reload.stats_status
   end
 end

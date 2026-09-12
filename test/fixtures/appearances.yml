@@ -1,0 +1,17 @@
+# The row's existence is the fact: there is no played column. Jane was named for
+# the winter game but never took the field, so she simply has no row for it.
+johns_winter:
+  fixture: played_with_stats
+  player: john
+
+johns_early:
+  fixture: awaiting_trl
+  player: john
+
+johns_summer:
+  fixture: summer_final
+  player: john
+
+janes_summer:
+  fixture: summer_final
+  player: jane

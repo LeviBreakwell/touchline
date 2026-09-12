@@ -1,0 +1,3 @@
+# Left empty on purpose: every existing expectation about points predates the
+# Play, and a bomb catch in the shared data would move all of them. The tests
+# that care about Plays create their own.

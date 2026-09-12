@@ -1,0 +1,44 @@
+<%# One card, at whatever scope it is asked for.
+      row     a MatchLadder::Row or a Leaderboard::Row
+      rank    the standing, or nil for somebody who is not in it
+      mvp     the crown, on the best card in a single game
+    A row that knows how many games it covers gets a G chip; one that knows
+    where it moved gets an arrow. Everything else is identical, which is the
+    point — the ladder you enter a game on is the board you end up on. %>
+<% ranked = row.respond_to?(:games) %>
+<% standing = cosmetics[row.player.user_id] %>
+<div class="lcard <%= row.player.user_id ? "claimed" : "unclaimed" %><%= " #{standing.banner_class}" if standing&.banner_class %><%= " mvp" if mvp %><%= " sidelined" if row.respond_to?(:played?) && !row.played? %>"
+     data-player-id="<%= row.player.id %>"
+     data-player-name="<%= row.player.name %>"
+     data-sidelined="<%= row.respond_to?(:played?) && !row.played? %>">
+  <span class="lcard-rank">
+    <%= rank || "·" %><%= rank_movement(row) if row.respond_to?(:movement) %>
+  </span>
+
+  <span class="lcard-avatar">
+    <%= border_ring(standing&.border) %><%= player_initials(row.player) %>
+  </span>
+
+  <span class="lcard-who">
+    <span class="lcard-name">
+      <%= ranked ? link_to(row.player.name, team_player_path(row.player.team_id, row.player), class: "leaderboard-player") : row.player.name %>
+      <%= hot_streak_flame(row) if row.respond_to?(:hot?) %>
+      <% if mvp %><span class="lcard-crown">MVP</span><% end %>
+    </span>
+    <span class="lcard-title<%= " locked" unless standing&.title %>">
+      <%= standing&.title || (row.player.user_id ? "No title yet" : "Roster only · no account") %>
+    </span>
+  </span>
+
+  <span class="lcard-chips">
+    <% if ranked %><span class="lchip g" title="Games"><%= row.games %></span><% end %>
+    <span class="lchip t<%= " on" if row.tries.positive? %>" title="Tries"><%= row.tries %></span>
+    <span class="lchip a<%= " on" if row.assists.positive? %>" title="Assists"><%= row.assists %></span>
+    <span class="lchip c<%= " on" if row.bomb_catches.positive? %>" title="Bomb catches"><%= row.bomb_catches %></span>
+    <span class="lchip e<%= " on" if row.negative_plays.positive? %>" title="Dropped bombs and opposition assists"><%= row.negative_plays %></span>
+  </span>
+
+  <span class="lcard-pts <%= row.points.positive? ? "up" : row.points.negative? ? "down" : "zero" %>">
+    <%= "+" if row.points.positive? %><%= row.points %>
+  </span>
+</div>

@@ -1,5 +1,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* A class that sets display would otherwise beat the browser's own rule for
+   [hidden], putting a hidden control back on the screen. */
+[hidden] { display: none !important; }
+
 :root {
   --green: #22c55e;
   --green-dark: #4ade80;
@@ -12,6 +16,14 @@
   --gray-800: #e6edf3;
   --red: #f85149;
   --flame: #fb923c;
+  /* The pass: every assist, every drag, every line between two cards. */
+  --pass: #58a6ff;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* The metals a border tier is painted in. Colour lives out here rather than
+     in the SVG, which is the whole reason four shapes are twelve tiers. */
+  --bronze-light: #e0a26a;  --bronze-dark: #8a4b22;
+  --silver-light: #eef2f6;  --silver-dark: #8b98a5;
+  --gold-light:   #f7dd8a;  --gold-dark:   #b8860b;
   --white: #161b22;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 8px;
@@ -246,82 +258,6 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
    reader rather than by shape. */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-/* STAT ENTRY */
-.stat-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--gray-100);
-}
-.stat-row:last-child { border-bottom: none; }
-
-.stat-player-info { flex: 1; min-width: 0; }
-.stat-player-name { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
-.stat-player-pts  { font-size: 0.78rem; color: var(--green-dark); font-weight: 600; margin-top: 0.1rem; }
-
-/* D-PAD STEPPERS */
-.stat-steppers { display: flex; gap: 0.5rem; flex-shrink: 0; }
-
-.stepper-group { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
-
-.stepper-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-                 letter-spacing: 0.06em; color: var(--gray-400); }
-
-.stepper {
-  display: flex;
-  align-items: center;
-  background: var(--gray-100);
-  border-radius: 999px;
-  overflow: hidden;
-  height: 2.75rem;
-  width: 7rem;
-}
-
-.stepper-btn {
-  flex-shrink: 0;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: none;
-  background: none;
-  font-size: 1.3rem;
-  font-weight: 300;
-  color: var(--gray-600);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-.stepper-btn:active { background: var(--gray-200); }
-
-@keyframes flash-green {
-  0%   { background: var(--green); color: #fff; transform: scale(1.2); }
-  100% { background: transparent; color: inherit; transform: scale(1); }
-}
-@keyframes flash-red {
-  0%   { background: var(--red); color: #fff; transform: scale(1.2); }
-  100% { background: transparent; color: inherit; transform: scale(1); }
-}
-.flash-green { animation: flash-green 0.35s ease-out forwards; }
-.flash-red   { animation: flash-red   0.35s ease-out forwards; }
-
-.stepper-val {
-  flex: 1;
-  text-align: center;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--gray-800);
-}
-
-/* READ-ONLY STAT VIEW */
-.stat-readonly { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
-.stat-readonly-item { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; min-width: 2.5rem; }
-.stat-readonly-pts { font-size: 0.8rem; color: var(--gray-400); min-width: 3rem; text-align: right; }
-.stat-label { font-size: 0.75rem; color: var(--gray-400); text-align: center; }
 
 /* FIXTURE NAVIGATION (prev/next on fixture show) */
 .fixture-nav {
@@ -410,33 +346,6 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 }
 .claim-btn:hover { background: var(--gray-100); }
 
-/* STAT TOTAL BAR
-   Sits directly above the roster and stays under the site header while the
-   list scrolls, so the running total is on screen for the player you are
-   actually tapping. Bleeds to the container edges so nothing shows beside it
-   once it is stuck. */
-.stat-total-bar {
-  position: sticky;
-  /* the header's height is its inner row plus its 1px bottom border */
-  top: calc(var(--header-height) + 1px);
-  z-index: 90;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 1rem;
-  margin: 0 -1rem 0.5rem;
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
-}
-.stat-total-label { font-size: 0.8rem; color: var(--gray-400); }
-.stat-total-value {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--green-dark);
-}
-/* The sheet already claims more than TRL published — it will not save. */
-.stat-total-value--over { color: var(--red); }
 
 /* PENDING TRL NOTE */
 .pending-note { font-size: 0.85rem; color: var(--gray-600); border-left: 3px solid #fbbf24; }
@@ -583,39 +492,6 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .leaderboard-player { color: var(--gray-800); text-decoration: none; }
 .leaderboard-player:hover { color: var(--green-dark); }
 
-/* PLAYED TOGGLE (stat entry) */
-.played-toggle { margin: 0; flex-shrink: 0; cursor: pointer; display: block; }
-.played-toggle input { position: absolute; opacity: 0; pointer-events: none; }
-.played-toggle-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  border: 2px solid var(--gray-200);
-  background: var(--gray-100);
-  color: transparent;
-  font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-}
-.played-toggle input:checked + .played-toggle-box {
-  background: var(--green);
-  border-color: var(--green);
-  color: #fff;
-}
-.played-toggle input:focus-visible + .played-toggle-box { box-shadow: 0 0 0 2px rgba(34,197,94,0.4); }
-
-.stat-row--out .stat-player-name { color: var(--gray-400); text-decoration: line-through; }
-.stat-row--out .stat-steppers { opacity: 0.35; }
-.stat-dnp { font-size: 0.78rem; color: var(--gray-400); margin-top: 0.1rem; }
-
-.stat-hint { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.5rem; }
-.stat-hint--trl { color: var(--gray-600); }
-.stat-hint--trl strong { color: var(--gray-800); }
 
 /* STAT TILES (player + profile pages) */
 .stat-grid {
@@ -793,25 +669,555 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
   }
 }
 
-/* STEPPER AT TRL'S CEILING */
-.stepper-btn--spent { opacity: 0.3; }
 
-@keyframes stepper-refuse {
-  0%, 100% { transform: translateX(0); }
-  20%      { transform: translateX(-4px); }
-  45%      { transform: translateX(4px); }
-  70%      { transform: translateX(-2px); }
+
+
+/* ══ THE MATCH LADDER ══════════════════════════════════════════════════════
+   The entry screen is a ranked list of the squad, not a pitch: a pitch spends
+   most of a phone on turf, while the same space as full-width cards buys a live
+   standing — so entering a stat and watching it land are one act.
+
+   One colour, one meaning throughout:
+     green  try, positive points      blue  assist, pass, drag
+     orange positive play             red   negative
+   The column header carries each colour, so the header teaches the palette. */
+.ladder {
+  position: relative;
+  padding-left: 32px;   /* the connection gutter */
 }
-.stepper--refused {
-  box-shadow: inset 0 0 0 2px var(--red);
-  animation: stepper-refuse 0.3s ease-in-out;
+
+/* Completed assists, drawn as arcs from the passer's card to the scorer's and
+   thickening the more often a pair connect. */
+.ladder-gutter {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 0;
+  transition: opacity 260ms ease;
 }
-.stat-hint--refused { color: var(--red); }
-.stat-hint--refused strong { color: var(--red); }
+
+.ladder-head {
+  position: sticky;
+  top: calc(var(--header-height) + 1px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.2rem 0.55rem 0.3rem 1.4rem;
+  margin-bottom: 0.15rem;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
+}
+.ladder-head .sp-avatar { width: 38px; flex-shrink: 0; }
+.ladder-head .sp-who { flex: 1; min-width: 0; }
+.ladder-head .lcard-chips span { min-width: 20px; text-align: center; padding: 0.1rem 0.22rem; }
+.ladder-head .h-t { color: var(--green-dark); }
+.ladder-head .h-a { color: var(--pass); }
+.ladder-head .h-c { color: var(--flame); }
+.ladder-head .h-e { color: var(--red); }
+.ladder-head .sp-pts { min-width: 2.1rem; text-align: right; flex-shrink: 0; color: var(--gray-600); }
+
+.lcard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.34rem;
+  padding: 0.4rem 0.55rem 0.4rem 1.4rem;   /* room for the rank inside the card */
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  transition: transform 0.22s ease, border-color 0.12s ease;
+}
+/* Only an editable ladder swallows the browser's own gestures. */
+.ladder--editable .lcard {
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.lcard.sidelined { opacity: 0.42; }
+.lcard.armed  { border-color: var(--pass); }
+.lcard.target { border-color: var(--pass); box-shadow: 0 0 0 2px rgba(88,166,255,0.35); }
+.lcard.mvp    { border-color: var(--flame); }
+
+/* A row that just changed says so, so the movement has a cause you can see. */
+@keyframes just-touched {
+  0%   { box-shadow: 0 0 0 0 rgba(88,166,255,0.55); }
+  35%  { box-shadow: 0 0 0 3px rgba(88,166,255,0.40); }
+  100% { box-shadow: 0 0 0 0 rgba(88,166,255,0); }
+}
+.lcard.just { animation: just-touched 820ms ease-out; }
+.lcard.just .lcard-rank { color: var(--pass); }
+.lcard.just .lcard-pts  { transform: scale(1.12); }
+
+.lcard-rank {
+  position: absolute;
+  left: 0.4rem; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--gray-400);
+  font-variant-numeric: tabular-nums;
+  width: 0.9rem;
+  text-align: right;
+  z-index: 2;
+}
+.lcard-avatar {
+  position: relative;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: var(--gray-200);
+  color: var(--gray-800);
+  border: 2px solid var(--gray-600);
+}
+/* An unclaimed roster entry carries no cosmetics at all: banked history earns
+   nothing until somebody claims it, and the card has to say so. */
+.lcard.unclaimed .lcard-avatar { border-style: dashed; border-color: var(--gray-200); color: var(--gray-400); background: transparent; }
+
+.lcard-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.lcard-name { font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lcard.unclaimed .lcard-name { font-weight: 500; font-style: italic; color: var(--gray-600); }
+.lcard-title { font-size: 0.6rem; color: var(--gray-400); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lcard-title.locked { font-style: italic; opacity: 0.7; }
+.lcard-crown {
+  font-size: 0.54rem; font-weight: 800; letter-spacing: 0.07em; color: #1a0d02;
+  background: var(--flame); border-radius: 4px; padding: 0.02rem 0.24rem; margin-left: 0.3rem;
+}
+
+.lcard-chips { display: flex; gap: 0.2rem; flex-shrink: 0; }
+.lchip {
+  min-width: 20px; text-align: center;
+  font-family: var(--mono); font-size: 0.64rem; font-weight: 700;
+  padding: 0.1rem 0.22rem; border-radius: 4px;
+  background: var(--gray-200); color: var(--gray-400);
+  font-variant-numeric: tabular-nums;
+}
+.lchip.t.on { background: var(--green);  color: #04140a; }
+.lchip.a.on { background: var(--pass);   color: #05121f; }
+.lchip.c.on { background: var(--flame);  color: #1a0d02; }
+.lchip.e.on { background: var(--red);    color: #1a0605; }
+
+.lcard-pts {
+  font-family: var(--mono); font-size: 0.92rem; font-weight: 800;
+  min-width: 2.1rem; text-align: right;
+  font-variant-numeric: tabular-nums; flex-shrink: 0;
+  transition: transform 260ms cubic-bezier(0.2,0.8,0.2,1);
+}
+.lcard-pts.up   { color: var(--green-dark); }
+.lcard-pts.down { color: var(--red); }
+.lcard-pts.zero { color: var(--gray-400); }
+
+.ladder-sideline {
+  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gray-400); font-weight: 700; margin: 0.55rem 0 0.3rem; padding-left: 0.2rem;
+}
+
+/* ── the long-hold menu ── */
+.play-menu {
+  position: fixed; z-index: 60; width: 214px;
+  background: var(--gray-100); border: 1px solid var(--gray-200);
+  border-radius: 10px; padding: 0.3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.65);
+}
+.play-menu-head {
+  font-size: 0.64rem; color: var(--gray-400);
+  padding: 0.3rem 0.5rem 0.35rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 0.25rem;
+}
+.play-menu button {
+  display: flex; width: 100%; align-items: center; justify-content: space-between;
+  font: inherit; font-size: 0.84rem; background: none; border: 0; color: var(--gray-800);
+  padding: 0.58rem 0.5rem; border-radius: 6px; cursor: pointer; text-align: left;
+}
+.play-menu button:hover { background: var(--gray-200); }
+/* The item under the finger, so sliding onto one and releasing is a choice you
+   can see being made. */
+.play-menu button.hot { background: var(--green-light); box-shadow: inset 0 0 0 1px var(--green); }
+.play-menu button .v { font-family: var(--mono); font-size: 0.74rem; font-weight: 700; }
+.play-menu .v.plus  { color: var(--green-dark); }
+.play-menu .v.minus { color: var(--red); }
+.play-menu .v.mute  { color: var(--gray-400); }
+
+/* ── live drag feedback ── */
+.drag-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 55; pointer-events: none; overflow: visible; }
+.drag-chip {
+  position: fixed; z-index: 56; pointer-events: none; display: none; align-items: center; gap: 0.4rem;
+  background: var(--gray-100); border: 1px solid var(--pass); border-radius: 14px;
+  padding: 0.22rem 0.55rem; font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+}
+.drag-chip.on { display: flex; }
+.drag-chip .val { font-family: var(--mono); font-size: 0.64rem; }
+.drag-chip .val b { color: var(--pass); font-weight: 700; }
+.drag-chip .val i { color: var(--green-dark); font-style: normal; font-weight: 700; }
+
+/* The hold ring: the held finger, drawn as it fills.
+   Centred on the icon rather than inset from it — an absolutely positioned
+   child measures from its parent's padding box, so the icon's own 2px border
+   pushed an inset ring off by exactly that much. */
+.hold-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.hold-ring circle {
+  fill: none;
+  stroke: var(--pass);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);    /* start the sweep at twelve o'clock */
+  transform-origin: 50% 50%;
+  stroke-dasharray: 163.363;    /* 2πr, r = 26 in the viewBox */
+  /* An animation, not a transition. A transition has to be started by changing
+     a value a frame after the element lands, and if that frame arrives before
+     the first style is committed there is nothing to transition from — which
+     is how the ring came up already full instead of filling. An animation
+     starts when the element does, with nothing to race. */
+  animation: hold-fill var(--hold-ms, 400ms) linear forwards;
+}
+@keyframes hold-fill {
+  from { stroke-dashoffset: 163.363; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* ── the toast ── */
+.ladder-toast {
+  position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(0.5rem);
+  background: var(--gray-200); color: var(--gray-800);
+  border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 600;
+  box-shadow: var(--shadow); z-index: 70;
+  opacity: 0; pointer-events: none; transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.ladder-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
-  .flash-green, .flash-red, .stepper--refused {
-    animation-duration: 0.01ms;
-    animation-iteration-count: 1;
-  }
+  .lcard, .lcard-pts, .ladder-gutter { transition: none; }
+  .lcard.just { animation: none; }
 }
+
+.ladder-hint {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.ladder-hint p { font-size: 0.78rem; color: var(--gray-400); }
+
+/* ══ THE THREE TABS ════════════════════════════════════════════════════════
+   Three scopes of one app, not three screens: Team is the board, Season is the
+   draw, Profile is you. Fixed to the bottom, where a thumb already is. */
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  height: calc(56px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--gray-100);
+  border-top: 1px solid var(--gray-200);
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gray-400);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab--on { color: var(--green-dark); }
+/* A season tab with no season behind it yet. Dim, not hidden: the shape of the
+   app should not change while the first sync is still running. */
+.tab--dead { opacity: 0.35; }
+
+/* Room for the bar, so the last card is never underneath it. */
+.container--tabbed { padding-bottom: calc(56px + 1rem + env(safe-area-inset-bottom)); }
+
+/* ── a tab's own header ── */
+.tab-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.tab-head-title { min-width: 0; }
+.tab-head-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+.btn-gear {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: var(--gray-400);
+  text-decoration: none;
+}
+.btn-gear:hover { background: var(--gray-100); color: var(--gray-800); }
+
+/* ── the team switcher ──
+   Team is global context, and this is where it changes. It offers connecting
+   another team even when you have only one, so the control is never dead. */
+.team-switch { position: relative; }
+.team-switch summary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--gray-400);
+}
+.team-switch summary::-webkit-details-marker { display: none; }
+.team-switch summary h1 { color: var(--gray-800); }
+.team-switch[open] summary svg { transform: rotate(180deg); }
+.team-switch-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 20;
+  min-width: 220px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 0.35rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.team-switch-menu .is-current { color: var(--green-dark); }
+
+/* ── the scope dropdown ──
+   Not chips: two seasons a year is seven chips after three years, wrapping
+   across a phone. */
+.scope-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.scope-select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.scope-link { font-size: 0.8rem; color: var(--gray-400); text-decoration: none; white-space: nowrap; }
+.scope-link:hover { color: var(--green-dark); }
+
+/* ── team settings ── */
+.settings-row { display: flex; align-items: center; gap: 0.5rem; }
+.count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  background: var(--gray-100);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  margin-left: 0.25rem;
+}
+
+/* ── the board: the ladder's card, one scope up ──
+   Ranked rows carry where they moved as well as where they stand, so the rank
+   block holds both. */
+.ladder--board .lcard { padding-left: 2.9rem; }
+.ladder--board .ladder-head { padding-left: 2.9rem; }
+.ladder--board .lcard-rank {
+  left: 0.35rem;
+  width: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.2rem;
+}
+.ladder-head .sp-rank { width: 0; }
+.ladder-head .h-g { color: var(--gray-600); }
+.lchip.g { background: var(--gray-200); color: var(--gray-600); font-weight: 800; }
+
+/* ══ COSMETICS ═════════════════════════════════════════════════════════════
+   Draw the geometry, borrow the glyphs, let CSS do the colour.
+
+   An SVG referenced with <img src> is a separate document and cannot be
+   recoloured from the page, which is exactly why colour lives out here — and
+   therefore why four shapes really are twelve tiers. mask-image beats
+   currentColor because a mask source's colour is discarded by definition, so
+   the background can be the gradient a metal tier wants. */
+.border-ring,
+.accolade-glyph {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.metal-bronze { background: linear-gradient(140deg, var(--bronze-light), var(--bronze-dark)); }
+.metal-silver { background: linear-gradient(140deg, var(--silver-light), var(--silver-dark)); }
+.metal-gold   { background: linear-gradient(140deg, var(--gold-light), var(--gold-dark)); }
+
+/* ── card banners ──
+   Eight of them and not one file: a banner is a wash behind a name, and a
+   gradient over tokens the app already has is the whole of what that needs. */
+.banner-green  { --banner: linear-gradient(100deg, rgba(34,197,94,0.16), transparent 62%); }
+.banner-blue   { --banner: linear-gradient(100deg, rgba(88,166,255,0.15), transparent 62%); }
+.banner-orange { --banner: linear-gradient(100deg, rgba(251,146,60,0.15), transparent 62%); }
+.banner-red    { --banner: linear-gradient(100deg, rgba(248,81,73,0.14), transparent 62%); }
+.banner-gold   { --banner: linear-gradient(100deg, rgba(247,221,138,0.16), transparent 62%); }
+.banner-silver { --banner: linear-gradient(100deg, rgba(238,242,246,0.12), transparent 62%); }
+.banner-bronze { --banner: linear-gradient(100deg, rgba(224,162,106,0.14), transparent 62%); }
+.banner-slate  { --banner: linear-gradient(100deg, rgba(173,186,199,0.12), transparent 62%); }
+
+/* The banner: a wash behind the name, and only a claimed Player has one. */
+.lcard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: var(--banner, none);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.lcard > * { position: relative; }
+
+/* The border sits on the portrait's own rim, which is why the avatar keeps no
+   border of its own once there is a tier to wear. */
+.border-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+}
+.lcard-avatar:has(.border-ring) { border-color: transparent; }
+
+/* ══ THE PROFILE ═══════════════════════════════════════════════════════════
+   Level, showcase, slots, career — the three things a card shows, and where
+   they are chosen. */
+.identity { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1.25rem; }
+.identity-face { position: relative; flex-shrink: 0; width: 64px; height: 64px; display: grid; place-items: center; }
+.identity-avatar {
+  position: relative;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--gray-200);
+  color: var(--gray-800);
+  border: 2px solid var(--gray-600);
+  font-weight: 800; font-size: 1.05rem;
+}
+.identity-avatar:has(.border-ring) { border-color: transparent; }
+.identity-avatar .border-ring { inset: -4px; }
+
+/* The level plaque hangs off the portrait, because it is a different fact
+   about somebody than the border is. */
+.level-badge { position: absolute; right: -2px; bottom: -2px; width: 24px; height: 24px; }
+.level-number {
+  position: absolute; right: -2px; bottom: -2px;
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  font-size: 0.66rem; font-weight: 800; color: #12161c;
+}
+
+.identity-who { min-width: 0; flex: 1; }
+.identity-title { font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.4rem; }
+.identity-title.locked { font-style: italic; color: var(--gray-400); }
+
+.level-bar { height: 6px; border-radius: 999px; background: var(--gray-200); overflow: hidden; margin-bottom: 0.3rem; }
+.level-bar span { display: block; height: 100%; background: var(--green); border-radius: 999px; }
+
+.profile-heading { margin: 1.5rem 0 0.6rem; }
+
+/* ── the showcase ──
+   Three at a time is what makes it a showcase rather than clutter, and it is
+   the only place accolade art appears at all. */
+.showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.showcase-slot {
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  padding: 0.75rem 0.4rem;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.showcase-slot .accolade-glyph { width: 28px; height: 28px; background: var(--gray-400); }
+.showcase-slot.filled .accolade-glyph { background: var(--green-dark); }
+.showcase-empty {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px dashed var(--gray-200);
+}
+.showcase-title { font-size: 0.72rem; font-weight: 700; }
+.showcase-note { font-size: 0.62rem; color: var(--gray-400); line-height: 1.25; }
+
+/* ── the slots ── */
+.slots { margin-bottom: 0.5rem; }
+.slot {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.slot-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.35rem; }
+.slot-value { font-weight: 600; text-transform: capitalize; }
+.slot-note { font-size: 0.7rem; color: var(--gray-400); margin-top: 0.35rem; }
+
+/* ── everything earned ── */
+.accolade-row {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.4rem;
+}
+.accolade-row .accolade-glyph { width: 22px; height: 22px; flex-shrink: 0; background: var(--gray-600); }
+.accolade-row.rarity-common   { border-left-color: var(--bronze-light); }
+.accolade-row.rarity-uncommon { border-left-color: var(--silver-light); }
+.accolade-row.rarity-rare     { border-left-color: var(--gold-light); }
+.accolade-row.rarity-mvp      { border-left-color: var(--flame); }
+.accolade-name { font-weight: 600; font-size: 0.88rem; }
+.accolade-xp { font-family: var(--mono); font-size: 0.72rem; font-weight: 700; color: var(--green-dark); flex-shrink: 0; }
+
+/* ── the claim payoff ── */
+.claimed-banner {
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+.claimed-title { font-weight: 700; color: var(--green-dark); margin-bottom: 0.25rem; }
+.claimed-note { font-size: 0.82rem; color: var(--gray-600); line-height: 1.45; }
+
+/* ── the form indicator ──
+   An arrow and a colour, three states. Green and red say what the arrow means
+   for that stat, not which way it points: a rising drop count is a falling
+   player. The uncertain marker is deliberately its own shape, because an
+   absent arrow reads as "level" rather than "we can't tell". */
+.form { display: inline-flex; vertical-align: -0.1em; margin-left: 0.35rem; }
+.form-good { color: var(--green-dark); }
+.form-bad { color: var(--red); }
+.form-level { color: var(--gray-400); }
+.form-unknown { color: var(--gray-200); }
+.form-note { font-size: 0.72rem; color: var(--gray-400); margin-top: 0.6rem; }

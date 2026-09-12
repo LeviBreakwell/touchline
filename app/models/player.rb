@@ -1,7 +1,13 @@
 class Player < ApplicationRecord
   belongs_to :team
   belongs_to :user, optional: true
-  has_many :game_stats, dependent: :destroy
+  has_many :appearances, dependent: :destroy
+  has_many :plays,       dependent: :destroy
+
+  # A try goes with the Player who scored it. An assist is a column on somebody
+  # else's try, so removing the assister leaves the try standing.
+  has_many :touchdowns_scored,   class_name: "Touchdown", foreign_key: :scorer_player_id,   dependent: :destroy
+  has_many :touchdowns_assisted, class_name: "Touchdown", foreign_key: :assister_player_id, dependent: :nullify
 
   normalizes :email, with: ->(e) { e.strip.downcase.presence }
 
@@ -13,7 +19,7 @@ class Player < ApplicationRecord
   # An admin can put an email on a roster entry before that person has an
   # account. When they sign in, the entry is waiting for them.
   def self.claim_by_email(user)
-    where(user_id: nil, email: user.email_address).includes(:team).filter_map do |player|
+    claimed = where(user_id: nil, email: user.email_address).includes(:team).filter_map do |player|
       player.update!(user: user)
       player.team.team_memberships.find_or_create_by!(user: user) do |membership|
         membership.role = :member
@@ -21,23 +27,27 @@ class Player < ApplicationRecord
       end
       player
     end
+
+    # Whatever that name has already done is theirs the moment they sign in.
+    AccoladeLedger.settle(user) if claimed.any?
+    claimed
   end
 
-  def career_stats = StatLine.for(game_stats)
+  def career_stats = StatLine.for(self)
 
   # The part of career_stats TRL has not confirmed yet — already counted, but
   # not yet squared against a published result.
-  def unconfirmed_stats = StatLine.unconfirmed(game_stats)
+  def unconfirmed_stats = StatLine.unconfirmed(self)
 
   def season_stats(season)
-    StatLine.for(game_stats.where(fixtures: { season_id: season.id }))
+    StatLine.for(self, fixtures: Fixture.where(season_id: season.id))
   end
 
   # Seasons this Player actually appeared in, newest first.
   def seasons_played
     team.seasons
-        .where(id: game_stats.played.joins(:fixture).select("fixtures.season_id"))
-        .order(created_at: :desc)
+        .where(id: appearances.joins(:fixture).select("fixtures.season_id"))
+        .by_recency
   end
 
   def season_tries(season)   = season_stats(season).tries
