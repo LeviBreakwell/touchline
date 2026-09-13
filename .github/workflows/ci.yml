@@ -74,7 +74,14 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config google-chrome-stable
+        run: |
+          sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config google-chrome-stable
+          # The runner image ships its own chromedriver, pinned independently of
+          # whatever Chrome apt just installed — the two drift out of sync as
+          # Chrome auto-updates upstream. Removing it lets Selenium Manager
+          # (built into selenium-webdriver 4.6+) fetch a driver that actually
+          # matches the installed browser instead of silently running mismatched.
+          sudo rm -f "$(command -v chromedriver)"
 
       - name: Checkout code
         uses: actions/checkout@v4

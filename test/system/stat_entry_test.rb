@@ -233,10 +233,13 @@ class StatEntryTest < ApplicationSystemTestCase
     open_ladder
     11.times { card_for(players(:john)).click }
 
-    # the writes are queued, so wait for the last one to land before reading
-    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lchip.t", text: "11"
-    eventually { @fixture.entered_tries == 11 }
+    # Eleven queued writes is the heaviest single test in this file — on a
+    # loaded CI runner the round trips alone can outrun Capybara's default
+    # wait, so check the authoritative model state first, with a generous
+    # timeout, before asking the DOM (which will already be caught up by then).
+    eventually(timeout: 15) { @fixture.entered_tries == 11 }
 
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lchip.t", text: "11"
     assert_equal 11, @fixture.entered_tries
     assert_equal :over_official, @fixture.reload.stats_status
   end
