@@ -20,7 +20,15 @@ class InvitationsController < ApplicationController
       @team.team_memberships.create!(user: Current.user, role: :member, status: :accepted)
       if @player_id.present?
         player = @team.players.find_by(id: @player_id, user_id: nil)
-        player&.update!(user: Current.user)
+        if player
+          player.update!(user: Current.user)
+
+          # Banked history earns nothing until somebody claims it — see
+          # players_controller#claim. This is the third way to claim a player
+          # (join-by-invite-link with a name preselected) and was missing the
+          # same settle call, so an invited player's backlog sat unawarded.
+          AccoladeLedger.settle(Current.user)
+        end
       end
       redirect_to team_path(@team), notice: "You're in! Welcome to #{@team.name}."
     end

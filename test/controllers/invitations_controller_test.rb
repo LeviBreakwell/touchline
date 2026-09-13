@@ -12,6 +12,19 @@ class InvitationsControllerTest < ActionDispatch::IntegrationTest
     assert @team.team_memberships.accepted.exists?(user: users(:stranger))
   end
 
+  test "claiming a preselected player backfills accolades already earned" do
+    john = players(:john)
+    sign_in_as users(:stranger)
+
+    assert_difference -> { AccoladeAward.count }, 7 do
+      get team_invite_path(@team.invite_token, player_id: john.id)
+    end
+
+    john.reload
+    assert_equal users(:stranger), john.user
+    assert users(:stranger).accolade_awards.exists?(key: "tries_5")
+  end
+
   test "already-a-member gets redirected without duplicate membership" do
     sign_in_as users(:member_user)
     assert_no_difference "TeamMembership.count" do

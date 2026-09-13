@@ -29,6 +29,16 @@ class PlayersControllerTest < ActionDispatch::IntegrationTest
     assert_select ".identity .level-number"
   end
 
+  # A viewer looking at somebody else's card gets the same accolade picture
+  # that player sees on their own Profile — just without a Customise control,
+  # which only ever acts on your own showcase.
+  test "a claimed player's accolade progression is visible to other viewers" do
+    get team_player_path(@team, players(:jane))
+
+    assert_select "h2", text: /Still to earn/
+    assert_select ".btn", text: "Customise", count: 0
+  end
+
   # This season leads: it is the comparison every arrow on the page makes, so
   # it should not be below the fold.
   test "this season leads, and carries the arrows" do

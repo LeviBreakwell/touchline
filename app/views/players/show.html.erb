@@ -19,8 +19,35 @@
   </div>
 <% end %>
 
-<% if @progression&.showcase&.any? %>
+<% if @progression %>
   <%= render "shared/showcase", progression: @progression %>
+
+  <%# Their progression, same as it reads on their own Profile — just without
+      the Customise control, which only ever acts on your own showcase. %>
+  <% if @progression.earned.any? %>
+    <h2 class="profile-heading">Accolades <span class="count"><%= @progression.earned.size %></span></h2>
+    <div class="accolade-list">
+      <% @progression.earned.each do |accolade, count| %>
+        <div class="accolade-row rarity-<%= accolade.rarity %>">
+          <%= accolade_glyph(accolade) %>
+          <div style="flex:1;min-width:0;">
+            <div class="accolade-name"><%= accolade.title %><%= " ×#{count}" if count > 1 %></div>
+            <div class="card-meta"><%= accolade.description %></div>
+          </div>
+          <div class="accolade-xp">+<%= accolade.xp * count %> XP</div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty">
+      <p>No accolades yet.</p>
+    </div>
+  <% end %>
+
+  <% if @progression.left_to_earn.positive? %>
+    <h2 class="profile-heading">Still to earn <span class="count"><%= @progression.left_to_earn %></span></h2>
+    <%= render "shared/aims", progression: @progression %>
+  <% end %>
 <% end %>
 
 <%# Your own record lives on your Profile, where it counts every team you play
