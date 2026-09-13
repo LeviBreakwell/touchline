@@ -46,7 +46,7 @@
       <h1 class="landing-headline">Track your TRL career.</h1>
       <p class="landing-sub">Every game, every try, every assist — season after season. Fixtures pulled straight from TRL Australia.</p>
       <div class="landing-cta">
-        <%= link_to "Sign up free", new_registration_path, class: "btn btn-primary btn-landing" %>
+        <%= link_to "Sign up", new_registration_path, class: "btn btn-primary btn-landing" %>
         <span class="landing-cta-or">Already on a team?</span>
         <%= link_to "Sign in", new_session_path, class: "landing-signin-link" %>
       </div>
@@ -57,33 +57,33 @@
       <figure class="landing-shot">
         <div class="phone">
           <%= image_tag "screen-leaderboard.jpg", width: 500, height: 707,
-                alt: "The Touchline season leaderboard, ranking ten players by points with games, tries and assists alongside." %>
+                alt: "The Touchline team leaderboard: a gold border and chosen title on the top-ranked card, a flame icon marking a hot streak, and rank-movement arrows on every row." %>
         </div>
         <figcaption>
-          <strong>Season leaderboard</strong>
-          Every player ranked by points. Filter by season or go all time.
+          <strong>Every card, personalised</strong>
+          A border and a title from your level and accolades. A flame for a hot streak, arrows for who's climbing.
         </figcaption>
       </figure>
 
       <figure class="landing-shot">
         <div class="phone">
           <%= image_tag "screen-entry.jpg", width: 500, height: 707, loading: "lazy",
-                alt: "Recording stats after a game: each player has a tick for whether they played and plus and minus buttons for tries and assists." %>
+                alt: "Recording a try: dragging one player's card onto another draws a line and a chip reading 'Jordan to Riley, assist +1, try +2'." %>
         </div>
         <figcaption>
           <strong>Two-minute stat entry</strong>
-          Tick who played, tap in tries and assists. Totals update as you go.
+          Tap a card for a try, drag one onto another for the assist. The ladder reorders as it happens.
         </figcaption>
       </figure>
 
       <figure class="landing-shot">
         <div class="phone">
           <%= image_tag "screen-career.jpg", width: 500, height: 707, loading: "lazy",
-                alt: "A player's career page showing points, tries, assists, games, seasons and points per game." %>
+                alt: "A player's career page: level 9 with a progress bar to level 10, three earned accolades, and this season's form against their career." %>
         </div>
         <figcaption>
-          <strong>Your career</strong>
-          Totals and averages across every season you've played.
+          <strong>Your profile</strong>
+          XP from every game, the accolades you've earned, and how this season compares to your career.
         </figcaption>
       </figure>
     </div>
@@ -97,8 +97,8 @@
       </div>
       <div class="landing-feature">
         <div>
-          <div class="landing-feature-title">Enter stats after the final whistle</div>
-          <div class="landing-feature-body">Any team member taps in who played, plus tries and assists, on their phone. Takes two minutes.</div>
+          <div class="landing-feature-title">Every stat that happened, not just the tries</div>
+          <div class="landing-feature-body">Tries, assists, bomb catches, dropped bombs and opposition errors — tap them in from your phone as the game happens. Takes two minutes.</div>
         </div>
       </div>
       <div class="landing-feature">
@@ -109,13 +109,17 @@
       </div>
       <div class="landing-feature">
         <div>
+          <div class="landing-feature-title">Level up as you play</div>
+          <div class="landing-feature-body">Every game earns XP. Climb levels, unlock accolades, and wear a border that shows how much rugby league you've actually got in you.</div>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div>
           <div class="landing-feature-title">Career stats</div>
-          <div class="landing-feature-body">Games played, tries, assists and points across every season you've turned out. Averages per game and per season, on your own profile.</div>
+          <div class="landing-feature-body">Games, tries, assists, points, your level and the accolades you've earned — all on your own profile, across every season you've played.</div>
         </div>
       </div>
     </div>
-
-    <div class="landing-footer-note">Free. No ads. No nonsense.</div>
 
   </div>
 <% end %>

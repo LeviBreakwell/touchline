@@ -2,7 +2,7 @@
 <% content_for :suppress_auth_buttons, true %>
 <div style="max-width:400px;margin:2rem auto;">
   <h1>Create account</h1>
-  <p style="color:var(--gray-600);margin-bottom:1.5rem;font-size:0.9rem;">Free, forever. Track your team's tries all season.</p>
+  <p style="color:var(--gray-600);margin-bottom:1.5rem;font-size:0.9rem;">Track every game, every stat, every level — season after season.</p>
 
   <%= form_with model: @user, url: registration_path do |f| %>
     <% if @user.errors.any? %>

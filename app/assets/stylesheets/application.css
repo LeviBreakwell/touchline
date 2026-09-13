@@ -451,13 +451,6 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
   line-height: 1.55;
 }
 
-.landing-footer-note {
-  font-size: 0.8rem;
-  color: var(--gray-400);
-  text-align: center;
-  padding-bottom: 2rem;
-}
-
 /* SEASON FILTER CHIPS */
 .filter-chips {
   display: flex;
