@@ -80,7 +80,7 @@ class ApplicationHelperTest < ActionView::TestCase
   test "holding a position renders a dash rather than an arrow" do
     html = rank_movement(board_row(movement: 0))
 
-    assert_includes html, "–"
+    assert_includes html, "<svg"
     assert_includes html, %(title="No change")
     assert_not_includes html, "move-up"
     assert_not_includes html, "move-down"
@@ -89,8 +89,17 @@ class ApplicationHelperTest < ActionView::TestCase
   test "a player with no previous position renders a dash, distinguished on hover" do
     html = rank_movement(board_row(movement: nil))
 
-    assert_includes html, "–"
+    assert_includes html, "<svg"
     assert_includes html, %(title="First game on this board")
+  end
+
+  test "the dash is drawn, not a text character, so it sits at the same height as an arrow" do
+    dash = rank_movement(board_row(movement: 0))
+    climb = rank_movement(board_row(movement: 2))
+
+    assert_not_includes dash, "–"
+    assert_includes dash, "<svg"
+    assert_includes climb, "<svg"
   end
 
   test "the flame appears only once the run reaches the threshold" do

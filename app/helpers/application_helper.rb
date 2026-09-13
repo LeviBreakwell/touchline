@@ -76,6 +76,15 @@ module ApplicationHelper
     <svg width="8" height="8" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5 2.5 4h11z" fill="currentColor"/></svg>
   SVG
 
+  # Same box as the arrows above, so "no change" sits at the same height as a
+  # climb or a fall rather than at wherever a dash character's own glyph
+  # happens to sit — a plain "–" text node drifted high against the arrows'
+  # baseline, which was the whole row's tell that it wasn't the same kind of
+  # thing.
+  MOVE_DASH_ICON = <<~SVG.html_safe
+    <svg width="8" height="8" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+  SVG
+
   # Marks a Player scoring in their last Leaderboard::HOT_STREAK games or more.
   def hot_streak_flame(row)
     return unless row.hot?
@@ -89,8 +98,8 @@ module ApplicationHelper
   # someone with no previous position, and a board full of NEW on the opening
   # game of a season would say nothing at all. The two still differ on hover.
   def rank_movement(row)
-    return tag.span("–", class: "move", title: "First game on this board") if row.new_entry?
-    return tag.span("–", class: "move", title: "No change") if row.movement.zero?
+    return tag.span(MOVE_DASH_ICON, class: "move", title: "First game on this board") if row.new_entry?
+    return tag.span(MOVE_DASH_ICON, class: "move", title: "No change") if row.movement.zero?
 
     up = row.movement.positive?
     label = "#{up ? 'Up' : 'Down'} #{row.movement.abs}"
