@@ -37,7 +37,9 @@
        data-match-ladder-urls-value="<%= {
          touchdowns:  team_season_fixture_touchdowns_path(@team, @season, @fixture),
          plays:       team_season_fixture_plays_path(@team, @season, @fixture),
-         appearances: team_season_fixture_appearances_path(@team, @season, @fixture)
+         appearances: team_season_fixture_appearances_path(@team, @season, @fixture),
+         latestTouchdown: team_season_fixture_latest_touchdown_path(@team, @season, @fixture),
+         latestPlay:      team_season_fixture_latest_play_path(@team, @season, @fixture)
        }.to_json %>">
 
     <div class="ladder-hint">

@@ -28,4 +28,16 @@ class PlaysController < StatEntriesController
     @fixture.plays.find(params[:id]).destroy!
     render_ladder(toast: "Undone")
   end
+
+  # The hold menu's Remove items: one kind can be several identical rows, and
+  # the card only knows the kind was wrong, not which occurrence. They are
+  # interchangeable, so the most recent one is the one it means.
+  def destroy_latest
+    kind = params.require(:kind)
+    return head :unprocessable_entity unless Play.kinds.key?(kind)
+
+    player = roster_player(params.require(:player_id))
+    @fixture.plays.where(player_id: player.id, kind: kind).order(:created_at).last&.destroy!
+    render_ladder(toast: "Undone")
+  end
 end

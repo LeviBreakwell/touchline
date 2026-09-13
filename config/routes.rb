@@ -33,6 +33,12 @@ Rails.application.routes.draw do
       # The match ladder writes as it goes: one row per gesture, inserted or
       # deleted. There is no sheet to submit.
       resources :fixtures, only: %i[show] do
+        # Declared ahead of the resourceful :id routes below, so "latest" is
+        # never swallowed as an id. The hold menu's Remove items hit these:
+        # a specific row to undo, found by player rather than told an id.
+        delete "touchdowns/latest", to: "touchdowns#destroy_latest", as: :latest_touchdown
+        delete "plays/latest",      to: "plays#destroy_latest",      as: :latest_play
+
         resources :touchdowns,  only: %i[create destroy]
         resources :plays,       only: %i[create destroy]
         resources :appearances, only: %i[create destroy], param: :player_id

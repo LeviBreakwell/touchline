@@ -137,6 +137,55 @@ class StatEntryTest < ApplicationSystemTestCase
     assert_equal 1, @fixture.plays.count
   end
 
+  test "a packed menu stays on screen and reachable on a short viewport" do
+    # Give John every kind at least once, so the menu grows a full Remove
+    # section on top of the usual items — as tall as this menu ever gets.
+    @fixture.touchdowns.create!(scorer: players(:john), assister: players(:jane))
+    @fixture.touchdowns.create!(scorer: players(:jane), assister: players(:john))
+    @fixture.plays.create!(player: players(:john), kind: "bomb_catch")
+    @fixture.plays.create!(player: players(:john), kind: "dropped_bomb")
+    @fixture.plays.create!(player: players(:john), kind: "opposition_assist")
+
+    open_ladder
+    page.driver.browser.manage.window.resize_to(390, 320)   # a short phone in landscape
+    hold(players(:john))
+
+    assert_selector ".play-menu button.destructive", count: 5, minimum: 5
+
+    fits = page.evaluate_script(<<~JS)
+      (() => {
+        const r = document.querySelector(".play-menu").getBoundingClientRect();
+        return r.top >= 0 && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
+      })()
+    JS
+    assert fits, "the menu should fit entirely inside the viewport, scrolling internally if it has to"
+
+    page.driver.browser.action.release.perform
+  end
+
+  test "a card with nothing on it yet offers nothing to remove" do
+    open_ladder
+    hold(players(:john))
+
+    assert_selector ".play-menu"
+    assert_no_selector ".play-menu button.destructive"
+  end
+
+  test "removing a try from the hold menu takes it back off the ladder" do
+    open_ladder
+    card_for(players(:john)).click
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lchip.t", text: "1"
+
+    hold(players(:john))
+    assert_selector ".play-menu button.destructive", text: "Remove a try"
+    page.driver.browser.action.release.perform
+    click_on "Remove a try"
+
+    assert_text "Undone"
+    assert_equal 0, tally(players(:john), :t)
+    eventually { @fixture.entered_tries.zero? }
+  end
+
   test "the sideline is a menu item, and it takes them off the grass" do
     open_ladder
     hold(players(:jane))

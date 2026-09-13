@@ -10,7 +10,12 @@
 <div class="lcard <%= row.player.user_id ? "claimed" : "unclaimed" %><%= " #{standing.banner_class}" if standing&.banner_class %><%= " mvp" if mvp %><%= " sidelined" if row.respond_to?(:played?) && !row.played? %>"
      data-player-id="<%= row.player.id %>"
      data-player-name="<%= row.player.name %>"
-     data-sidelined="<%= row.respond_to?(:played?) && !row.played? %>">
+     data-sidelined="<%= row.respond_to?(:played?) && !row.played? %>"
+     data-tries="<%= row.tries %>"
+     data-assists="<%= row.assists %>"
+     data-bomb-catches="<%= row.bomb_catches %>"
+     data-dropped-bombs="<%= row.dropped_bombs %>"
+     data-opposition-assists="<%= row.opposition_assists %>">
   <span class="lcard-rank">
     <%= rank || "·" %><%= rank_movement(row) if row.respond_to?(:movement) %>
   </span>

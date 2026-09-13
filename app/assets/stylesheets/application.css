@@ -830,6 +830,11 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
   position: fixed; z-index: 60; width: 214px;
   background: var(--gray-100); border: 1px solid var(--gray-200);
   border-radius: 10px; padding: 0.3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.65);
+  /* The Remove items can push this taller than a short phone screen. Rather
+     than clip the bottom of the menu off-screen, it scrolls internally — the
+     JS caps max-height to the viewport and repositions to fit before this
+     ever has to. */
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .play-menu-head {
   font-size: 0.64rem; color: var(--gray-400);
@@ -848,6 +853,12 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .play-menu .v.plus  { color: var(--green-dark); }
 .play-menu .v.minus { color: var(--red); }
 .play-menu .v.mute  { color: var(--gray-400); }
+
+/* The Remove items sit below their own divider, so a fast tap near the top of
+   the menu can't land on one by accident. */
+.play-menu-div { border-top: 1px solid var(--gray-200); margin: 0.25rem 0.1rem; }
+.play-menu button.destructive { color: var(--red); }
+.play-menu button.destructive:hover { background: #2d1414; }
 
 /* ── live drag feedback ── */
 .drag-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 55; pointer-events: none; overflow: visible; }

@@ -5,7 +5,10 @@ import { Controller } from "@hotwired/stimulus"
 //   tap                a try
 //   drag card → card   that pass for that try: an assist for the source, a try
 //                      for the target, in one row
-//   hold 400ms         the Play menu — slide onto an item and release to pick
+//   hold 400ms         the Play menu — slide onto an item and release to pick.
+//                      Below the usual items, whatever that card already has
+//                      this game shows up as Remove — for the tap or drag that
+//                      landed on the wrong person.
 //   tap a sidelined card   brings them back on
 //
 // Every gesture writes one row and the server answers with the whole ladder,
@@ -19,6 +22,19 @@ const PLAY_KINDS = [
   { kind: "bomb_catch", label: "Bomb catch", value: "+1", sign: "plus" },
   { kind: "dropped_bomb", label: "Dropped bomb", value: "−1", sign: "minus" },
   { kind: "opposition_assist", label: "Opposition assist", value: "−2", sign: "minus" }
+]
+
+// The Remove section of that same menu: undoing something entered by mistake
+// that isn't the last thing on the ladder any more. Each is only offered when
+// the card carries at least one of that kind — count comes off the card's own
+// data attributes, not a fetch — and removes the most recent one, since one
+// occurrence of a kind is as good as any other to take back.
+const REMOVALS = [
+  { what: "try", data: "tries", label: "Remove a try" },
+  { what: "assist", data: "assists", label: "Remove an assist" },
+  { what: "bomb_catch", data: "bombCatches", label: "Remove a bomb catch" },
+  { what: "dropped_bomb", data: "droppedBombs", label: "Remove a dropped bomb" },
+  { what: "opposition_assist", data: "oppositionAssists", label: "Remove an opposition assist" }
 ]
 
 export default class extends Controller {
@@ -168,6 +184,20 @@ export default class extends Controller {
     this.#write("DELETE", `${this.urlsValue.appearances}/${playerId}`, null, [ playerId ])
   }
 
+  // The hold menu's Remove items. "try" and "assist" are columns on a
+  // Touchdown row rather than kinds of their own, so those two carry a role
+  // instead of a kind — the server finds that player's most recent row in
+  // that role and takes it, and the other column on that same row with it.
+  #removeLatest(playerId, what) {
+    const params = new URLSearchParams(
+      what === "try" ? { player_id: playerId, role: "scorer" }
+      : what === "assist" ? { player_id: playerId, role: "assister" }
+      : { player_id: playerId, kind: what }
+    )
+    const base = (what === "try" || what === "assist") ? this.urlsValue.latestTouchdown : this.urlsValue.latestPlay
+    this.#write("DELETE", `${base}?${params}`, null, [])
+  }
+
   undo() {
     const last = this.undoStack.pop()
     if (!last) return this.#toast("Nothing to undo")
@@ -249,8 +279,10 @@ export default class extends Controller {
       const existing = node.classList?.contains("lcard") && kept.get(node.dataset.playerId)
       if (!existing) return node
 
-      existing.className = node.className
-      existing.dataset.sidelined = node.dataset.sidelined
+      // The stat counts live in data attributes too — the Remove items in the
+      // hold menu read them straight off the card — so every attribute is
+      // brought over, not just the couple the old reconcile happened to name.
+      for (const attr of node.attributes) existing.setAttribute(attr.name, attr.value)
       existing.innerHTML = node.innerHTML
       return existing
     })
@@ -390,13 +422,24 @@ export default class extends Controller {
   #openMenu(g) {
     this.#closeMenu()
 
+    const removals = REMOVALS.filter(r => Number(g.card.dataset[r.data] || 0) > 0)
+
     const menu = document.createElement("div")
     menu.className = "play-menu"
     menu.innerHTML =
       `<div class="play-menu-head">${g.name}</div>` +
       PLAY_KINDS.map(k => `<button type="button" data-kind="${k.kind}">${k.label}<span class="v ${k.sign}">${k.value}</span></button>`).join("") +
-      `<button type="button" data-kind="__sideline">${g.sidelined ? "Mark as played" : "Didn't play"}<span class="v mute">—</span></button>`
+      `<button type="button" data-kind="__sideline">${g.sidelined ? "Mark as played" : "Didn't play"}<span class="v mute">—</span></button>` +
+      (removals.length
+        ? `<div class="play-menu-div"></div>` +
+          removals.map(r => `<button type="button" class="destructive" data-remove="${r.what}">${r.label}<span class="v mute">${g.card.dataset[r.data]}</span></button>`).join("")
+        : "")
     document.body.appendChild(menu)
+
+    // Capped before it is measured, so a menu with every Remove item showing
+    // never claims more height than the screen has — it scrolls instead of
+    // running off the bottom, on a phone in one hand as much as anywhere else.
+    menu.style.maxHeight = `${window.innerHeight - 16}px`
 
     const width = 214, height = menu.offsetHeight
     menu.style.left = `${Math.max(8, Math.min(window.innerWidth - width - 8, g.x - width / 2))}px`
@@ -407,8 +450,10 @@ export default class extends Controller {
       const button = event.target.closest("button")
       if (!button) return
       const kind = button.dataset.kind
+      const remove = button.dataset.remove
       if (kind === "__sideline") g.sidelined ? this.#markPlayed(g.id) : this.#sideline(g.id)
-      else this.#recordPlay(g.id, kind)
+      else if (kind) this.#recordPlay(g.id, kind)
+      else if (remove) this.#removeLatest(g.id, remove)
       this.#closeMenu()
     })
 
