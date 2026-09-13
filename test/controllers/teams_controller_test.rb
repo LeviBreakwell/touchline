@@ -93,7 +93,7 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
         name: "Brand New Team", location: "Sydney",
         spawtz_venue_id: "111", spawtz_league_id: "222",
         spawtz_season_id: "333", spawtz_team_id: "brand-new-id"
-      }}
+      } }
     end
     team = Team.last
     assert_redirected_to team_path(team)

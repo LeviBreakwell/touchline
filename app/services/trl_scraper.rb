@@ -77,5 +77,4 @@ class TrlScraper
   rescue URI::InvalidURIError
     {}
   end
-
 end

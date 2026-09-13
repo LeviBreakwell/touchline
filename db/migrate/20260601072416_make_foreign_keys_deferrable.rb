@@ -8,7 +8,7 @@ class MakeForeignKeysDeferrable < ActiveRecord::Migration[8.0]
     { table: "seasons",          name: "fk_rails_292182df05", col: "team_id",     ref: "teams(id)" },
     { table: "sessions",         name: "fk_rails_758836b4f0", col: "user_id",     ref: "users(id)" },
     { table: "team_memberships", name: "fk_rails_61c29b529e", col: "team_id",     ref: "teams(id)" },
-    { table: "team_memberships", name: "fk_rails_5aba9331a7", col: "user_id",     ref: "users(id)" },
+    { table: "team_memberships", name: "fk_rails_5aba9331a7", col: "user_id",     ref: "users(id)" }
   ]
 
   def up

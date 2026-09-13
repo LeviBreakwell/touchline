@@ -1,5 +1,5 @@
 class InvitationsController < ApplicationController
-  allow_unauthenticated_access only: [:show]
+  allow_unauthenticated_access only: [ :show ]
 
   def show
     @team = Team.find_by!(invite_token: params[:invite_token])
