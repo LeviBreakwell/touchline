@@ -148,6 +148,10 @@ class StatEntryTest < ApplicationSystemTestCase
 
     open_ladder
     page.driver.browser.manage.window.resize_to(390, 320)   # a short phone in landscape
+    # The resize is asynchronous in some browsers — proceeding before the
+    # viewport has actually caught up means the hold lands on a card that
+    # isn't where the layout will settle, and the menu never opens.
+    eventually { page.evaluate_script("window.innerWidth") <= 400 }
     hold(players(:john))
 
     assert_selector ".play-menu button.destructive", count: 5, minimum: 5
