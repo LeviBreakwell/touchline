@@ -71,6 +71,18 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".tab-bar .tab--on", text: /Profile/
   end
 
+  # A User is one person, so their own name goes to the record that counts every
+  # team they play for. Everyone else's goes to the Team's view of them, which
+  # is the only view an unclaimed roster entry has.
+  test "your own name on the board goes to your profile, everyone else's to theirs" do
+    sign_in_as users(:member_user)   # linked to Jane
+    get team_path(teams(:warthogs))
+
+    assert_select "a.leaderboard-player[href=?]", profile_path, text: players(:jane).name
+    assert_select "a.leaderboard-player[href=?]", team_player_path(teams(:warthogs), players(:john))
+    assert_select "a.leaderboard-player[href=?]", team_player_path(teams(:warthogs), players(:jane)), count: 0
+  end
+
   test "the gear is the admin's way in, and only the admin's" do
     get team_path(teams(:warthogs))
     assert_select "a.btn-gear[href=?]", team_settings_path(teams(:warthogs))

@@ -161,9 +161,13 @@ Three Accolades a User pins to the top of their profile, chosen from those they 
 The third-party platform TRL Australia uses to publish fixtures and results. The app scrapes Spawtz to sync Fixtures and game results — there is no official API.
 _Avoid_: TRL website, external API, feed
 
-**Career page**:
-A Player's own page, and the only place Form appears. **This season leads** — it is the comparison every arrow makes, so it is not below the fold — then career totals, then a row per season. It shows the **Team-inclusive** point total and labels it, since a Player has had two totals since #17.
-_Avoid_: Profile (the Profile tab is your own account across teams), stats page
+**Career**:
+The record of one Player on one Team — totals, the part TRL has not checked, the seasons they appeared in, and the only place Form appears. **This season leads** — it is the comparison every arrow makes, so it is not below the fold — then career totals, then a row per season. It shows the **Team-inclusive** point total and labels it, since a Player has had two totals since #17.
+
+**A career is team-scoped; an account is not.** A Season belongs to a Team, so "this season" and "by season" can only be asked a Team at a time — that is the whole reason there are two halves. The **account-scoped** half is level, XP, accolades and totals across every roster, because a User is one person however many teams they turn out for; a Player who is two rosters has two careers and still one account.
+
+The Profile carries both: the account half, then one career block per Team. The two used to be separate screens showing the same person. `players#show` survives as the **Team's** view of one name on its roster — it is the only view an unclaimed entry has, it is public, and it is where a teammate's name on the board goes. Your own name on the board goes to your Profile.
+_Avoid_: Career page (it is not its own screen any more), stats page
 
 ## Relationships
 

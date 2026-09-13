@@ -25,12 +25,7 @@ class AccoladeLedger
     # The tiered ladders. Safe to run on every write: a rung is a total
     # crossing a line, so running it twice changes nothing.
     def settle_totals(user)
-      line = StatLine.for(user.players.select(:id))
-      totals = {
-        appearances: line.games, tries: line.tries, assists: line.assists,
-        bomb_catches: line.bomb_catches, dropped_bombs: line.dropped_bombs,
-        opposition_assists: line.opposition_assists
-      }
+      totals = Accolade.totals(StatLine.for(user.players.select(:id)))
 
       # Read the ledger once rather than asking it thirty times. This runs on
       # every gesture, and all but the first few are rungs already earned.

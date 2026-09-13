@@ -7,16 +7,7 @@ class PlayersController < ApplicationController
     @player = @team.players.find(params[:id])
     remember_team(@team)
 
-    @career = @player.career_stats
-    @pending = @player.unconfirmed_stats
-    @seasons = @player.seasons_played
-
-    # This season leads, because it is the comparison every arrow on the page
-    # makes — it should not be below the fold.
-    @season = @seasons.first
-    @season_line = @season ? @player.season_stats(@season) : StatLine.new
-    @form = Form.new(season: @season_line, career: @career)
-
+    @career = Career.new(@player)
     @progression = Progression.new(@player.user) if @player.user
   end
 

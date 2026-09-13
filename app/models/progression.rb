@@ -8,10 +8,11 @@ class Progression
   APPEARANCE_XP = 10
   STAT_XP = 1
 
-  def initialize(user, xp: nil, awards: nil)
+  def initialize(user, xp: nil, awards: nil, line: nil)
     @user = user
     @xp = xp
     @awards = awards
+    @line = line
   end
 
   # Everyone on one screen at once.
@@ -98,6 +99,68 @@ class Progression
 
   def showcase
     @user.showcase_keys.filter_map { |key| Accolade[key] if earned?(key) }.first(SHOWCASE_SLOTS)
+  end
+
+  # ── what is still out there ──
+  #
+  # A profile that lists only what has been earned tells somebody with nothing
+  # that there is nothing to get. Both shapes of accolade therefore have to say
+  # what they are waiting for, and the tiered ones can say how far off it is.
+
+  # A ladder as the person climbing it sees it: where they are, which rungs are
+  # behind them, and what the next one costs. One row per ladder rather than one
+  # per rung — six rows say what thirty would, because the rung after next is
+  # not a goal until this one is met.
+  Climb = Struct.new(:stat, :total, :rungs, :earned_keys, keyword_init: true) do
+    def label = Accolade::NOUNS.fetch(stat).pluralize.capitalize
+    def noun = Accolade::NOUNS.fetch(stat)
+
+    def earned?(accolade) = earned_keys.include?(accolade.key)
+    def next_rung = rungs.find { |accolade| !earned?(accolade) }
+    def complete? = next_rung.nil?
+
+    # Whichever rung carries the ladder's glyph — a whole ladder shares one, so
+    # any rung will do and the next one is the one being aimed at.
+    def face = next_rung || rungs.last
+
+    def to_go = complete? ? 0 : [ next_rung.threshold - total, 0 ].max
+
+    # How far between the last rung earned and the next one. Measured from the
+    # rung below rather than from zero, so a bar that is nearly full means
+    # nearly there — which is the only thing it is asked.
+    def fraction
+      return 1.0 if complete?
+
+      from = rungs.take_while { |accolade| earned?(accolade) }.last&.threshold.to_i
+      span = next_rung.threshold - from
+      return 1.0 if span.zero?
+
+      ((total - from).to_f / span).clamp(0.0, 1.0)
+    end
+  end
+
+  def climbs
+    @climbs ||= begin
+      totals = Accolade.totals(line)
+      keys = awards.map(&:key).to_set
+
+      Accolade::LADDERS.keys.map do |stat|
+        Climb.new(stat: stat, total: totals.fetch(stat), rungs: Accolade.ladder(stat), earned_keys: keys)
+      end
+    end
+  end
+
+  # How many accolades are still out there. Counts rungs, not ladders: thirty
+  # tiered plus six one-offs is the whole of it.
+  def left_to_earn
+    climbs.sum { |climb| climb.rungs.count { |rung| !climb.earned?(rung) } } + unearned_one_offs.size
+  end
+
+  # The one-offs nobody has yet. Rarest first, which is also the order they are
+  # hardest in — a grand final above a hat-trick.
+  def unearned_one_offs
+    Accolade.repeatable.reject { |accolade| earned?(accolade.key) }
+            .sort_by { |accolade| [ -accolade.xp, accolade.title ] }
   end
 
   # Which wash a rare accolade paints behind a name. Eight gradients over

@@ -6,6 +6,7 @@
     where it moved gets an arrow. Everything else is identical, which is the
     point — the ladder you enter a game on is the board you end up on. %>
 <% ranked = row.respond_to?(:games) %>
+<% mine = row.player.user_id.present? && row.player.user_id == Current.user&.id %>
 <% standing = cosmetics[row.player.user_id] %>
 <div class="lcard <%= row.player.user_id ? "claimed" : "unclaimed" %><%= " #{standing.banner_class}" if standing&.banner_class %><%= " mvp" if mvp %><%= " sidelined" if row.respond_to?(:played?) && !row.played? %>"
      data-player-id="<%= row.player.id %>"
@@ -26,7 +27,10 @@
 
   <span class="lcard-who">
     <span class="lcard-name">
-      <%= ranked ? link_to(row.player.name, team_player_path(row.player.team_id, row.player), class: "leaderboard-player") : row.player.name %>
+      <%# Your own name goes to your Profile, which is your record across every
+          team. Everyone else's goes to the Team's view of them, which is the
+          only view an unclaimed roster entry has. %>
+      <%= ranked ? link_to(row.player.name, mine ? profile_path : team_player_path(row.player.team_id, row.player), class: "leaderboard-player") : row.player.name %>
       <%= hot_streak_flame(row) if row.respond_to?(:hot?) %>
       <% if mvp %><span class="lcard-crown">MVP</span><% end %>
     </span>

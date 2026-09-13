@@ -23,9 +23,11 @@
   <%= render "shared/showcase", progression: @progression %>
 <% end %>
 
+<%# Your own record lives on your Profile, where it counts every team you play
+    for. This page is the Team's view of one name on its roster. %>
 <% if @player.user_id == Current.user&.id %>
   <p class="card-meta" style="margin-top:0.5rem;">
-    <%= link_to "Choose your title, banner and showcase →", profile_slots_path %>
+    <%= link_to "Your full profile, across every team →", profile_path %>
   </p>
 <% end %>
 
@@ -35,80 +37,23 @@
   </div>
 <% end %>
 
-<%# Counted in the totals below like everything else — named here so a Player
-    can see which part of their record TRL has not checked yet. %>
-<% if @pending.any? %>
-  <div class="card pending-note">
-    Counted, not yet checked: <strong><%= @pending.tries %>T · <%= @pending.assists %>A</strong>
-    from <%= pluralize(@pending.games, "game") %> TRL hasn&rsquo;t published a result for.
-  </div>
+<% if @career.pending.any? %>
+  <%= render "shared/pending_note", pending: @career.pending %>
 <% end %>
 
 <% if @career.any? %>
   <%# ── THIS SEASON ──
       Every arrow on the page lives here: the indicator compares this season
       against the rest of the career, because nothing else has data. %>
-  <% if @season %>
-    <h2 class="profile-heading">This season <span class="count"><%= @season.name %></span></h2>
-    <div class="card">
-      <dl style="margin:0;">
-        <%= render "players/form_row", label: "Tries per game",   value: @season_line.tries_per_game,   reading: @form.on(:tries) %>
-        <%= render "players/form_row", label: "Assists per game", value: @season_line.assists_per_game, reading: @form.on(:assists) %>
-        <%= render "players/form_row", label: "Points per game",  value: @season_line.points_per_game,  reading: @form.on(:points) %>
-        <%= render "players/form_row", label: "Catch rate",
-              value: @season_line.catch_rate ? "#{@season_line.catch_rate}%" : "—", reading: @form.on(:catch_rate) %>
-        <%= render "players/form_row", label: "Dropped bombs", value: @season_line.dropped_bombs, reading: @form.on(:dropped_bombs) %>
-        <%= render "players/form_row", label: "Opposition assists", value: @season_line.opposition_assists, reading: @form.on(:opposition_assists) %>
-      </dl>
-      <p class="form-note">
-        Arrows compare this season with the rest of <%= @player.name %>&rsquo;s career.
-      </p>
-    </div>
+  <% if @career.season %>
+    <h2 class="profile-heading">This season <span class="count"><%= @career.season.name %></span></h2>
+    <%= render "shared/season_form", career: @career, name: @player.name %>
   <% end %>
 
-  <%# ── CAREER ──
-      Two point totals exist since #17, so this one has to say which it is. %>
-  <h2 class="profile-heading">Career</h2>
-  <%= render "shared/career_totals", line: @career %>
+  <h2 class="profile-heading">Career <span class="count"><%= @team.name %></span></h2>
+  <%= render "shared/career_totals", line: @career.line %>
+  <%= render "shared/career_detail", line: @career.line, mvps: @progression&.count_of("mvp") %>
 
-  <div class="card">
-    <dl style="margin:0;">
-      <div class="average-row"><dt>Games</dt><dd><%= @career.games %></dd></div>
-      <div class="average-row"><dt>Seasons</dt><dd><%= @career.seasons %></dd></div>
-      <% if @progression && (mvps = @progression.count_of("mvp")).positive? %>
-        <div class="average-row"><dt>MVP</dt><dd>×<%= mvps %></dd></div>
-      <% end %>
-      <div class="average-row">
-        <dt>Points, Social league</dt>
-        <dd><%= @career.touchdown_points %></dd>
-      </div>
-    </dl>
-    <p class="form-note">
-      The tile above counts Plays, which are the Team&rsquo;s own; the Social league counts tries and assists alone.
-    </p>
-  </div>
-
-  <%# ── BY SEASON ── %>
   <h2 class="profile-heading">By season</h2>
-  <div class="card" style="padding:0;">
-    <table class="season-table">
-      <thead>
-        <tr><th>Season</th><th>G</th><th>T</th><th>A</th><th>C</th><th>E</th><th class="points">Pts</th></tr>
-      </thead>
-      <tbody>
-        <% @seasons.each do |season| %>
-          <% line = @player.season_stats(season) %>
-          <tr>
-            <td><%= link_to season.name, team_season_path(@team, season) %></td>
-            <td><%= line.games %></td>
-            <td><%= line.tries %></td>
-            <td><%= line.assists %></td>
-            <td><%= line.bomb_catches %></td>
-            <td><%= line.negative_plays %></td>
-            <td class="points"><%= line.points %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
+  <%= render "shared/season_table", career: @career %>
 <% end %>

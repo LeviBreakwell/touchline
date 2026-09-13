@@ -77,6 +77,59 @@ class ProgressionTest < ActiveSupport::TestCase
     assert_nil Progression.new(users(:stranger)).border
   end
 
+  # A profile that lists only what has been earned tells somebody with nothing
+  # that there is nothing to get.
+  test "every accolade is still to earn when nothing has been" do
+    assert_equal Accolade.all.size, progression.left_to_earn
+    assert_equal 6, progression.unearned_one_offs.size
+  end
+
+  test "a ladder reports the next rung and the distance to it" do
+    3.times { fixtures(:summer_final).touchdowns.create!(scorer: @player) }
+
+    tries = progression.climbs.find { |climb| climb.stat == :tries }
+
+    assert_equal 3, tries.total
+    assert_equal "Scorer", tries.next_rung.title
+    assert_equal 2, tries.to_go
+    assert_in_delta 0.6, tries.fraction, 0.01
+  end
+
+  # Measured from the rung below rather than from zero, so a nearly-full bar
+  # means nearly there.
+  test "the distance to a rung is measured from the rung below it" do
+    @user.accolade_awards.create!(key: "tries_5")
+    5.times { fixtures(:summer_final).touchdowns.create!(scorer: @player) }
+
+    tries = progression.climbs.find { |climb| climb.stat == :tries }
+
+    assert_equal "Finisher", tries.next_rung.title
+    assert_equal 10, tries.to_go
+    assert_in_delta 0.0, tries.fraction, 0.01, "five tries is the bottom of the rung, not half way up it"
+  end
+
+  test "a finished ladder says so rather than pointing at a rung that is not there" do
+    Accolade.ladder(:tries).each { |rung| @user.accolade_awards.create!(key: rung.key) }
+
+    tries = progression.climbs.find { |climb| climb.stat == :tries }
+
+    assert_predicate tries, :complete?
+    assert_nil tries.next_rung
+    assert_equal 0, tries.to_go
+    assert_in_delta 1.0, tries.fraction, 0.01
+  end
+
+  # A rung is never revoked, so a total can sit below one already earned.
+  test "a total that went backwards does not push a bar below empty" do
+    @user.accolade_awards.create!(key: "tries_5")   # earned, then the sheet was fixed
+
+    tries = progression.climbs.find { |climb| climb.stat == :tries }
+
+    assert_equal 0, tries.total
+    assert_equal "Finisher", tries.next_rung.title
+    assert_in_delta 0.0, tries.fraction, 0.01
+  end
+
   test "the batch says the same thing as asking one at a time" do
     @user.accolade_awards.create!(key: "tries_5")
     batched = Progression.batch([ @user.id, users(:admin_user).id ])

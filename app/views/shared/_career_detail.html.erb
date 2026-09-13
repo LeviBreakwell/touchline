@@ -1,0 +1,18 @@
+<%# What the tiles do not carry, and the two point totals a Player has had since
+    #17 — so this one has to say which it is. locals: line, mvps %>
+<div class="card">
+  <dl style="margin:0;">
+    <div class="average-row"><dt>Games</dt><dd><%= line.games %></dd></div>
+    <div class="average-row"><dt>Seasons</dt><dd><%= line.seasons %></dd></div>
+    <% if mvps&.positive? %>
+      <div class="average-row"><dt>MVP</dt><dd>×<%= mvps %></dd></div>
+    <% end %>
+    <div class="average-row">
+      <dt>Points, Social league</dt>
+      <dd><%= line.touchdown_points %></dd>
+    </div>
+  </dl>
+  <p class="form-note">
+    The tiles above count Plays, which are the Team&rsquo;s own; the Social league counts tries and assists alone.
+  </p>
+</div>

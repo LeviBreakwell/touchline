@@ -110,6 +110,14 @@ class Accolade
   end
 
   def self.[](key) = all[key.to_s]
-  def self.ladder(stat) = all.values.select { |accolade| accolade.stat == stat }
+  def self.ladder(stat) = all.values.select { |accolade| accolade.stat == stat }.sort_by(&:threshold)
   def self.repeatable = all.values.select(&:repeatable?)
+
+  # What each ladder is counting, read off a StatLine. Only `appearances`
+  # differs from its own name — a StatLine calls those games — and the one
+  # mapping lives here so the ledger that awards a rung and the profile that
+  # shows the distance to it cannot disagree about what the rung counts.
+  def self.totals(line)
+    LADDERS.keys.index_with { |stat| line.public_send(stat == :appearances ? :games : stat) }
+  end
 end

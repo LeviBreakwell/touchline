@@ -1,0 +1,6 @@
+<%# Counted in the totals like everything else — named here so a Player can see
+    which part of their record TRL has not checked yet. locals: pending %>
+<div class="card pending-note">
+  Counted, not yet checked: <strong><%= pending.tries %>T · <%= pending.assists %>A</strong>
+  from <%= pluralize(pending.games, "game") %> TRL hasn&rsquo;t published a result for.
+</div>

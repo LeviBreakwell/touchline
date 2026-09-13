@@ -2,8 +2,15 @@
 <html lang="en">
   <head>
     <title><%= content_for(:title) || "Touchline" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%# viewport-fit=cover is what makes env(safe-area-inset-*) mean anything.
+        Without it every inset in the stylesheet resolves to 0, so the tab bar
+        sits flush on the bottom edge — the strip iOS Safari keeps for its own
+        controls, where a tap expands the browser chrome instead of hitting the
+        tab it landed on. %>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">

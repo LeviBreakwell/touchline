@@ -1,6 +1,11 @@
 <% content_for :title, "Profile – Touchline" %>
 
 <%# ── THE PROFILE: what you have done, not the controls for saying it ──
+    The career page and this one were two screens showing the same person. They
+    are one screen now: the account-scoped half — level, accolades, totals over
+    every team — leads, and each roster's season detail follows it, because a
+    Season belongs to a Team and cannot be aggregated.
+
     The slots are a form and live behind Customise. This screen is the one you
     hand somebody. %>
 <%= render "shared/identity", user: @user, progression: @progression, name: @user.name %>
@@ -33,27 +38,55 @@
   </div>
 <% end %>
 
-<%# ── CAREER ── %>
-<h2 class="profile-heading">Career</h2>
-<%= render "shared/career_totals", line: @career %>
+<%# ── EVERYTHING NOT EARNED ──
+    Shown whether or not anything has been: a list of only what you have tells
+    somebody with nothing that there is nothing to get. %>
+<% if @progression.left_to_earn.positive? %>
+  <h2 class="profile-heading">Still to earn <span class="count"><%= @progression.left_to_earn %></span></h2>
+  <%= render "shared/aims", progression: @progression %>
+<% end %>
 
-<h2 class="profile-heading">Your players</h2>
+<%# ── CAREER ──
+    Every team at once, because a User is one person and every stat recorded
+    against any of their names is theirs. %>
+<h2 class="profile-heading">
+  Career<% if @careers.many? %> <span class="count">all teams</span><% end %>
+</h2>
+
 <% if @players.empty? %>
   <div class="empty">
     <p>You're not linked to a player on any team yet.</p>
     <p class="card-meta">Open your team and tap your name on the roster to link up.</p>
   </div>
 <% else %>
-  <% @players.each do |player| %>
-    <% line = player.career_stats %>
-    <%= link_to team_player_path(player.team, player), class: "card settings-row", style: "text-decoration:none;color:inherit;" do %>
-      <div style="flex:1;min-width:0;">
-        <div class="card-title"><%= player.team.name %></div>
-        <div class="card-meta"><%= player.name %> · <%= line.games %> games</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-weight:700;color:var(--green-dark);"><%= line.points %> pts</div>
-        <div class="card-meta"><%= line.tries %>T · <%= line.assists %>A</div>
+  <%= render "shared/career_totals", line: @line %>
+  <%= render "shared/career_detail", line: @line, mvps: @progression.count_of("mvp") %>
+
+  <%# ── A BLOCK PER ROSTER ──
+      One heading each, so a season table is never ambiguous about whose season
+      it is. With one team — which is nearly everybody — this reads as the rest
+      of the page. %>
+  <% @careers.each do |career| %>
+    <h2 class="profile-heading">
+      <%= link_to career.team.name, team_path(career.team) %>
+      <span class="count"><%= pluralize(career.line.games, "game") %></span>
+    </h2>
+
+    <% if career.pending.any? %>
+      <%= render "shared/pending_note", pending: career.pending %>
+    <% end %>
+
+    <% if career.any? %>
+      <% if career.season %>
+        <h3 class="profile-subheading">This season · <%= career.season.name %></h3>
+        <%= render "shared/season_form", career: career, name: career.player.name %>
+      <% end %>
+
+      <h3 class="profile-subheading">By season</h3>
+      <%= render "shared/season_table", career: career %>
+    <% else %>
+      <div class="empty">
+        <p>No games recorded as <%= career.player.name %> yet.</p>
       </div>
     <% end %>
   <% end %>

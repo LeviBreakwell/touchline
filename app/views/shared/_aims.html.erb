@@ -1,0 +1,54 @@
+<%# What is still out there. A profile that lists only what has been earned
+    tells somebody with nothing that there is nothing to get — so the two shapes
+    of accolade each say what they are waiting for. locals: progression
+
+    A ladder is one row, not five: the rail of thresholds shows the whole ladder
+    at a glance, and the rung after next is not a goal until this one is met. %>
+<div class="aims">
+  <% progression.climbs.each do |climb| %>
+    <div class="aim<%= " complete" if climb.complete? %>">
+      <%= accolade_glyph(climb.face) %>
+      <div class="aim-body">
+        <div class="aim-top">
+          <span class="aim-name"><%= climb.label %></span>
+          <span class="aim-rungs">
+            <% climb.rungs.each do |rung| %>
+              <span class="rung<%= climb.earned?(rung) ? " on rarity-#{rung.rarity}" : climb.next_rung == rung ? " next" : "" %>"
+                    title="<%= rung.title %> · <%= rung.description %><%= " · earned" if climb.earned?(rung) %>"><%= rung.threshold %></span>
+            <% end %>
+          </span>
+        </div>
+
+        <div class="aim-note">
+          <% if climb.complete? %>
+            Every rung earned · <%= climb.total %> <%= climb.noun.pluralize(climb.total) %>
+          <% elsif climb.to_go.positive? %>
+            Next: <strong><%= climb.next_rung.title %></strong> at <%= climb.next_rung.description %>
+            · <%= climb.to_go %> to go
+          <% else %>
+            Next: <strong><%= climb.next_rung.title %></strong> · reached, settles with your next entry
+          <% end %>
+        </div>
+
+        <div class="level-bar" aria-hidden="true"><span style="width:<%= (climb.fraction * 100).round %>%;"></span></div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%# The one-offs carry no distance — they are events, not totals — so they say
+    what the event is and what it pays. %>
+<% if progression.unearned_one_offs.any? %>
+  <div class="aims-one-offs">
+    <% progression.unearned_one_offs.each do |accolade| %>
+      <div class="accolade-row rarity-<%= accolade.rarity %> locked">
+        <%= accolade_glyph(accolade) %>
+        <div style="flex:1;min-width:0;">
+          <div class="accolade-name"><%= accolade.title %></div>
+          <div class="card-meta"><%= accolade.description %></div>
+        </div>
+        <div class="accolade-xp">+<%= accolade.xp %> XP</div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

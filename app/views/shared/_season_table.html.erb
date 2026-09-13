@@ -1,0 +1,22 @@
+<%# A row per season, for one Player on one Team. locals: career %>
+<div class="card" style="padding:0;">
+  <table class="season-table">
+    <thead>
+      <tr><th>Season</th><th>G</th><th>T</th><th>A</th><th>C</th><th>E</th><th class="points">Pts</th></tr>
+    </thead>
+    <tbody>
+      <% career.seasons.each do |season| %>
+        <% line = career.player.season_stats(season) %>
+        <tr>
+          <td><%= link_to season.name, team_season_path(career.team, season) %></td>
+          <td><%= line.games %></td>
+          <td><%= line.tries %></td>
+          <td><%= line.assists %></td>
+          <td><%= line.bomb_catches %></td>
+          <td><%= line.negative_plays %></td>
+          <td class="points"><%= line.points %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,17 @@
+<%# This season, and every arrow on the page: the indicator compares this season
+    against the rest of the career, because nothing else has data.
+    locals: career, name %>
+<div class="card">
+  <dl style="margin:0;">
+    <%= render "players/form_row", label: "Tries per game",   value: career.season_line.tries_per_game,   reading: career.form.on(:tries) %>
+    <%= render "players/form_row", label: "Assists per game", value: career.season_line.assists_per_game, reading: career.form.on(:assists) %>
+    <%= render "players/form_row", label: "Points per game",  value: career.season_line.points_per_game,  reading: career.form.on(:points) %>
+    <%= render "players/form_row", label: "Catch rate",
+          value: career.season_line.catch_rate ? "#{career.season_line.catch_rate}%" : "—", reading: career.form.on(:catch_rate) %>
+    <%= render "players/form_row", label: "Dropped bombs", value: career.season_line.dropped_bombs, reading: career.form.on(:dropped_bombs) %>
+    <%= render "players/form_row", label: "Opposition assists", value: career.season_line.opposition_assists, reading: career.form.on(:opposition_assists) %>
+  </dl>
+  <p class="form-note">
+    Arrows compare this season with the rest of <%= name %>&rsquo;s <%= career.team.name %> career.
+  </p>
+</div>
