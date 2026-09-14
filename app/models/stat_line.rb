@@ -47,14 +47,14 @@ class StatLine
     @plays = plays
   end
 
-  def bomb_catches       = plays.fetch("bomb_catch", 0)
-  def dropped_bombs      = plays.fetch("dropped_bomb", 0)
-  def opposition_assists = plays.fetch("opposition_assist", 0)
+  def bomb_catches    = plays.fetch("bomb_catch", 0)
+  def dropped_bombs   = plays.fetch("dropped_bomb", 0)
+  def critical_errors = plays.fetch("critical_error", 0)
 
   # One column on a card, because both cost points and both are the same kind of
   # thing to the person reading it. They stack — a dropped bomb the opposition
   # scored from is both — so this can exceed the number of distinct incidents.
-  def negative_plays = dropped_bombs + opposition_assists
+  def negative_plays = dropped_bombs + critical_errors
 
   # Every kick-off a Player contests produces exactly one or the other, which is
   # what makes this a rate rather than a guess. Nil until they have contested

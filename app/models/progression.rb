@@ -171,7 +171,7 @@ class Progression
     "assists_50"            => "banner-blue",
     "bomb_catches_150"      => "banner-orange",
     "dropped_bombs_30"      => "banner-red",
-    "opposition_assists_15" => "banner-bronze",
+    "critical_errors_15"    => "banner-bronze",
     "undefeated_season"     => "banner-slate",
     "grand_final"           => "banner-gold",
     "top_of_the_ladder"     => "banner-gold"

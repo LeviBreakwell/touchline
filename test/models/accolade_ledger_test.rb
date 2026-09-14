@@ -56,7 +56,7 @@ class AccoladeLedgerTest < ActiveSupport::TestCase
   test "MVP goes to the most points in the game, plays included" do
     @fixture.appearances.create!(player: @jane)
     @fixture.appearances.create!(player: players(:john))
-    3.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+    10.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
     @fixture.touchdowns.create!(scorer: players(:john))
 
     AccoladeLedger.settle_fixture(@fixture.reload)

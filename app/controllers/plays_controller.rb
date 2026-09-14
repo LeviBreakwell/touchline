@@ -3,9 +3,9 @@
 # in a game without a counter anywhere.
 class PlaysController < StatEntriesController
   LABELS = {
-    "bomb_catch"        => "bomb catch +1",
-    "dropped_bomb"      => "dropped bomb −1",
-    "opposition_assist" => "opposition assist −2"
+    "bomb_catch"     => "bomb catch +1",
+    "dropped_bomb"   => "dropped bomb −1",
+    "critical_error" => "critical error −8"
   }.freeze
 
   def create

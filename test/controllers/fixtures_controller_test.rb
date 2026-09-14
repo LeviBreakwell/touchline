@@ -35,11 +35,11 @@ class FixturesControllerTest < ActionDispatch::IntegrationTest
   test "a card carries the tallies and the points" do
     get team_season_fixture_path(@team, @season, @fixture)
 
-    # John: 3 tries, 1 assist, no plays — 7 points
+    # John: 3 tries, 1 assist, no plays — 28 points
     assert_select ".lcard[data-player-id=?]", players(:john).id.to_s do
       assert_select ".lchip.t", text: "3"
       assert_select ".lchip.a", text: "1"
-      assert_select ".lcard-pts", text: /\+7/
+      assert_select ".lcard-pts", text: /\+28/
     end
   end
 

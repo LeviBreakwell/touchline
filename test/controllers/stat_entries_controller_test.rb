@@ -56,7 +56,7 @@ class StatEntriesControllerTest < ActionDispatch::IntegrationTest
 
     body = JSON.parse(response.body)
     assert_includes body["ladder"], "lcard"
-    assert_equal "John — try +2", body["toast"]
+    assert_equal "John — try +8", body["toast"]
     assert_includes body.dig("undo", "path"), "/touchdowns/"
   end
 
@@ -169,9 +169,9 @@ class StatEntriesControllerTest < ActionDispatch::IntegrationTest
 
   test "plays stack, and both are true" do
     post_json plays_path, player_id: players(:john).id, kind: "dropped_bomb"
-    post_json plays_path, player_id: players(:john).id, kind: "opposition_assist"
+    post_json plays_path, player_id: players(:john).id, kind: "critical_error"
 
-    assert_equal(-3, MatchLadder.new(@fixture, @team).played.find { |row| row.player == players(:john) }.points)
+    assert_equal(-9, MatchLadder.new(@fixture, @team).played.find { |row| row.player == players(:john) }.points)
   end
 
   test "a play never touches verification" do

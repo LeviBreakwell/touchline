@@ -114,7 +114,7 @@ def record_stats(fixture, squad, _absent, rng, tries: nil)
 
   # TRL restarts with a bomb at the start of each half and after every try, so
   # a team receives four or five in a game and each one is caught or dropped by
-  # somebody. An opposition assist is much rarer, and never more than the other
+  # somebody. A critical error is much rarer, and never more than the other
   # side actually scored.
   rng.rand(4..5).times do
     fixture.plays.create!(player: squad.sample(random: rng),
@@ -122,7 +122,7 @@ def record_stats(fixture, squad, _absent, rng, tries: nil)
   end
 
   rng.rand(0..[ fixture.opponent_score.to_i, 2 ].min).times do
-    fixture.plays.create!(player: squad.sample(random: rng), kind: :opposition_assist)
+    fixture.plays.create!(player: squad.sample(random: rng), kind: :critical_error)
   end
 
   fixture.refresh_stats_verification!

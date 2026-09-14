@@ -17,8 +17,8 @@ class PlayerTest < ActiveSupport::TestCase
     assert_equal 3, @player.season_assists(@season)
   end
 
-  test "season_points is tries×2 plus assists" do
-    assert_equal 17, @player.season_points(@season)
+  test "season_points is tries×8 plus assists×4" do
+    assert_equal 68, @player.season_points(@season)
   end
 
   test "season_points is zero for a player with no stats" do
@@ -40,7 +40,7 @@ class PlayerTest < ActiveSupport::TestCase
   test "career totals span every season" do
     assert_equal 8, @player.total_tries
     assert_equal 5, @player.total_assists
-    assert_equal 21, @player.total_points
+    assert_equal 84, @player.total_points
     assert_equal 3, @player.total_games
   end
 

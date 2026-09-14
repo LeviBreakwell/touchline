@@ -5,13 +5,13 @@
 # leaderboard's card, at match scope.
 class MatchLadder
   Row = Struct.new(:player, :played, :tries, :assists,
-                   :bomb_catches, :dropped_bombs, :opposition_assists, keyword_init: true) do
+                   :bomb_catches, :dropped_bombs, :critical_errors, keyword_init: true) do
     def points = Leaderboard.points_for(to_h)
 
     # Both negatives under one column. They stack — a dropped bomb the
     # opposition scored from is both — so this can exceed the number of
     # distinct incidents.
-    def negative_plays = dropped_bombs + opposition_assists
+    def negative_plays = dropped_bombs + critical_errors
 
     def played? = played
   end
@@ -68,7 +68,7 @@ class MatchLadder
         assists: touchdowns.count { |td| td.assister_player_id == player.id },
         bomb_catches:       kinds.fetch("bomb_catch", []).size,
         dropped_bombs:      kinds.fetch("dropped_bomb", []).size,
-        opposition_assists: kinds.fetch("opposition_assist", []).size
+        critical_errors:    kinds.fetch("critical_error", []).size
       )
     end
   end

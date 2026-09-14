@@ -36,8 +36,8 @@ class TouchdownsController < StatEntriesController
   private
 
   def toast_for(scorer, assister)
-    return "#{first_name(scorer)} — try +2" if assister.nil?
-    "#{first_name(assister)} → #{first_name(scorer)} · assist +1 · try +2"
+    return "#{first_name(scorer)} — try +#{Touchdown::TRY_POINTS}" if assister.nil?
+    "#{first_name(assister)} → #{first_name(scorer)} · assist +#{Touchdown::ASSIST_POINTS} · try +#{Touchdown::TRY_POINTS}"
   end
 
   def undo_for(touchdown)

@@ -53,7 +53,7 @@ class StatEntryTest < ApplicationSystemTestCase
 
     card_for(players(:john)).click
 
-    assert_text "John — try +2"
+    assert_text "John — try +8"
     assert_equal 1, tally(players(:john), :t)
     assert_equal 1, @fixture.entered_tries
   end
@@ -62,7 +62,7 @@ class StatEntryTest < ApplicationSystemTestCase
     open_ladder
     card_for(players(:john)).click
 
-    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lcard-pts", text: "+2"
+    assert_selector ".lcard[data-player-id='#{players(:john).id}'] .lcard-pts", text: "+8"
   end
 
   test "the ladder re-sorts as stats land" do
@@ -72,7 +72,7 @@ class StatEntryTest < ApplicationSystemTestCase
 
     card_for(players(:john)).click
 
-    assert_text "John — try +2"
+    assert_text "John — try +8"
     assert_equal players(:john).id.to_s, all(".lcard").first["data-player-id"]
   end
 
@@ -123,7 +123,7 @@ class StatEntryTest < ApplicationSystemTestCase
     assert_selector ".play-menu"
     assert_text "Bomb catch"
     assert_text "Dropped bomb"
-    assert_text "Opposition assist"
+    assert_text "Critical error"
   end
 
   test "picking a play from the menu records it" do
@@ -144,7 +144,7 @@ class StatEntryTest < ApplicationSystemTestCase
     @fixture.touchdowns.create!(scorer: players(:jane), assister: players(:john))
     @fixture.plays.create!(player: players(:john), kind: "bomb_catch")
     @fixture.plays.create!(player: players(:john), kind: "dropped_bomb")
-    @fixture.plays.create!(player: players(:john), kind: "opposition_assist")
+    @fixture.plays.create!(player: players(:john), kind: "critical_error")
 
     open_ladder
     page.driver.browser.manage.window.resize_to(390, 320)   # a short phone in landscape

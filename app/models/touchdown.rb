@@ -7,8 +7,8 @@
 # most one assister: the last pass is the assist, and a ceiling of one is also
 # what keeps the official-score check sound.
 class Touchdown < ApplicationRecord
-  TRY_POINTS    = 2
-  ASSIST_POINTS = 1
+  TRY_POINTS    = 8
+  ASSIST_POINTS = 4
 
   belongs_to :fixture
   belongs_to :scorer,   class_name: "Player", foreign_key: :scorer_player_id,   optional: true

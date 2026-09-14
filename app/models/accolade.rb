@@ -17,14 +17,14 @@ class Accolade
 
   # Ladders are scaled per stat: a shared ladder cannot work, because the same
   # rungs are wildly different achievements. Twenty bomb catches is eighteen
-  # games; twenty opposition assists is two hundred.
+  # games; twenty critical errors is two hundred.
   LADDERS = {
     appearances:        [ 5, 15, 25, 60, 120 ],
     tries:              [ 5, 15, 25, 50, 100 ],
     assists:            [ 3, 10, 15, 25, 50 ],
     bomb_catches:       [ 10, 15, 30, 75, 150 ],
     dropped_bombs:      [ 2, 3, 10, 15, 30 ],
-    opposition_assists: [ 1, 2, 3, 10, 15 ]
+    critical_errors:    [ 1, 2, 3, 10, 15 ]
   }.freeze
 
   RARITIES = %i[common common uncommon uncommon rare].freeze
@@ -38,13 +38,13 @@ class Accolade
     assists:            [ "Distributor", "Playmaker", "The Link", "Architect", "Maestro" ],
     bomb_catches:       [ "Safe Hands", "High Ball", "Bomb Magnet", "The Wall", "Skyhook" ],
     dropped_bombs:      [ "Butterfingers", "Greasy Palms", "Slippery Customer", "Hands of Stone", "Gravity Always Wins" ],
-    opposition_assists: [ "Generous", "Gift Wrapped", "Their Best Player", "Double Agent", "Honorary Opposition" ]
+    critical_errors:    [ "Generous", "Gift Wrapped", "Their Best Player", "Double Agent", "Honorary Opposition" ]
   }.freeze
 
   NOUNS = {
     appearances: "appearance", tries: "try", assists: "assist",
     bomb_catches: "bomb catch", dropped_bombs: "dropped bomb",
-    opposition_assists: "opposition assist"
+    critical_errors: "critical error"
   }.freeze
 
   # The glyph each one wears in the showcase — the only place accolade art
@@ -53,7 +53,7 @@ class Accolade
   GLYPHS = {
     appearances: "appearances", tries: "tries", assists: "assists",
     bomb_catches: "bomb-catches", dropped_bombs: "dropped-bombs",
-    opposition_assists: "opposition-assists"
+    critical_errors: "critical-errors"
   }.freeze
 
   REPEATABLES = [

@@ -16,7 +16,7 @@
      data-assists="<%= row.assists %>"
      data-bomb-catches="<%= row.bomb_catches %>"
      data-dropped-bombs="<%= row.dropped_bombs %>"
-     data-opposition-assists="<%= row.opposition_assists %>">
+     data-critical-errors="<%= row.critical_errors %>">
   <span class="lcard-rank">
     <%= rank || "·" %><%= rank_movement(row) if row.respond_to?(:movement) %>
   </span>
@@ -44,7 +44,7 @@
     <span class="lchip t<%= " on" if row.tries.positive? %>" title="Tries"><%= row.tries %></span>
     <span class="lchip a<%= " on" if row.assists.positive? %>" title="Assists"><%= row.assists %></span>
     <span class="lchip c<%= " on" if row.bomb_catches.positive? %>" title="Bomb catches"><%= row.bomb_catches %></span>
-    <span class="lchip e<%= " on" if row.negative_plays.positive? %>" title="Dropped bombs and opposition assists"><%= row.negative_plays %></span>
+    <span class="lchip e<%= " on" if row.negative_plays.positive? %>" title="Dropped bombs and critical errors"><%= row.negative_plays %></span>
   </span>
 
   <span class="lcard-pts <%= row.points.positive? ? "up" : row.points.negative? ? "down" : "zero" %>">

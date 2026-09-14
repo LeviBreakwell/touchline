@@ -34,7 +34,7 @@ class LeaderboardTest < ActiveSupport::TestCase
     assert_equal 8, row.tries
     assert_equal 5, row.assists
     assert_equal 3, row.games
-    assert_equal 21, row.points
+    assert_equal 84, row.points
   end
 
   test "a season is scoped to that season's fixtures" do

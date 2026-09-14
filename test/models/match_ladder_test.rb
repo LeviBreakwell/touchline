@@ -32,24 +32,24 @@ class MatchLadderTest < ActiveSupport::TestCase
 
   test "a play can put somebody below a player who did nothing" do
     @fixture.open_sideline!
-    @fixture.plays.create!(player: players(:john), kind: :opposition_assist)
+    @fixture.plays.create!(player: players(:john), kind: :critical_error)
 
     assert_equal [ players(:jane), players(:john) ], ladder.played.map(&:player)
-    assert_equal(-2, row_for(players(:john)).points)
+    assert_equal(-8, row_for(players(:john)).points)
   end
 
   test "both negatives are collapsed into one column, and they stack" do
     @fixture.plays.create!(player: players(:john), kind: :dropped_bomb)
-    @fixture.plays.create!(player: players(:john), kind: :opposition_assist)
+    @fixture.plays.create!(player: players(:john), kind: :critical_error)
 
     row = row_for(players(:john))
     assert_equal 2, row.negative_plays
-    assert_equal(-3, row.points)
+    assert_equal(-9, row.points)
   end
 
   test "MVP is the most points in the game, plays included" do
     @fixture.touchdowns.create!(scorer: players(:john))
-    3.times { @fixture.plays.create!(player: players(:jane), kind: :bomb_catch) }
+    10.times { @fixture.plays.create!(player: players(:jane), kind: :bomb_catch) }
 
     assert_equal players(:jane), ladder.mvp.player
   end

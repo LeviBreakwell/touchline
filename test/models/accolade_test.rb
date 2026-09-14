@@ -8,11 +8,11 @@ class AccoladeTest < ActiveSupport::TestCase
 
   # A shared ladder cannot work: the same rungs on different stats are wildly
   # different achievements. Twenty bomb catches is eighteen games; twenty
-  # opposition assists is two hundred.
+  # critical errors is two hundred.
   test "every ladder is scaled to its own stat" do
     assert_equal [ 5, 15, 25, 50, 100 ], Accolade.ladder(:tries).map(&:threshold)
-    assert_equal [ 1, 2, 3, 10, 15 ], Accolade.ladder(:opposition_assists).map(&:threshold)
-    assert_operator Accolade["bomb_catches_150"].threshold, :>, Accolade["opposition_assists_15"].threshold
+    assert_equal [ 1, 2, 3, 10, 15 ], Accolade.ladder(:critical_errors).map(&:threshold)
+    assert_operator Accolade["bomb_catches_150"].threshold, :>, Accolade["critical_errors_15"].threshold
   end
 
   test "XP is a fixed tier, never a bespoke number" do

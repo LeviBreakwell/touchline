@@ -16,8 +16,8 @@ class StatLineTest < ActiveSupport::TestCase
     assert_equal 2, line.seasons
   end
 
-  test "points is tries x 2 plus assists" do
-    assert_equal 21, players(:john).career_stats.points
+  test "points is tries x 8 plus assists x 4" do
+    assert_equal 84, players(:john).career_stats.points
   end
 
   test "per-game averages divide by appearances" do
@@ -25,7 +25,7 @@ class StatLineTest < ActiveSupport::TestCase
 
     assert_equal 2.7, line.tries_per_game
     assert_equal 1.7, line.assists_per_game
-    assert_equal 7.0, line.points_per_game
+    assert_equal 28.0, line.points_per_game
   end
 
   test "per-season averages divide by seasons played" do
@@ -33,7 +33,7 @@ class StatLineTest < ActiveSupport::TestCase
 
     assert_equal 4.0, line.tries_per_season
     assert_equal 2.5, line.assists_per_season
-    assert_equal 10.5, line.points_per_season
+    assert_equal 42.0, line.points_per_season
     assert_equal 1.5, line.games_per_season
   end
 
@@ -83,9 +83,9 @@ class StatLineTest < ActiveSupport::TestCase
   end
 
   test "points counts plays, and can be dragged below a player's tries" do
-    record(:opposition_assist, 3)   # −6 against John's 21
+    record(:critical_error, 3)   # −24 against John's 84
 
-    assert_equal 15, players(:john).career_stats.points
+    assert_equal 60, players(:john).career_stats.points
   end
 
   test "a play is worth what it is worth, whichever way it points" do
@@ -95,12 +95,12 @@ class StatLineTest < ActiveSupport::TestCase
     line = players(:john).career_stats
     assert_equal 2, line.bomb_catches
     assert_equal 1, line.dropped_bombs
-    assert_equal 22, line.points   # 21 + 2 − 1
+    assert_equal 85, line.points   # 84 + 2 − 1
   end
 
   test "both negatives read as one number, and they stack" do
     record(:dropped_bomb)
-    record(:opposition_assist)
+    record(:critical_error)
 
     assert_equal 2, players(:john).career_stats.negative_plays
   end
@@ -111,8 +111,8 @@ class StatLineTest < ActiveSupport::TestCase
     record(:bomb_catch, 5)
 
     line = players(:john).career_stats
-    assert_equal 21, line.touchdown_points
-    assert_equal 26, line.points
+    assert_equal 84, line.touchdown_points
+    assert_equal 89, line.points
   end
 
   # ── CATCH RATE ────────────────────────────────────────────────────────────

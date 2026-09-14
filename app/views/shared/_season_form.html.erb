@@ -9,7 +9,7 @@
     <%= render "players/form_row", label: "Catch rate",
           value: career.season_line.catch_rate ? "#{career.season_line.catch_rate}%" : "—", reading: career.form.on(:catch_rate) %>
     <%= render "players/form_row", label: "Dropped bombs", value: career.season_line.dropped_bombs, reading: career.form.on(:dropped_bombs) %>
-    <%= render "players/form_row", label: "Opposition assists", value: career.season_line.opposition_assists, reading: career.form.on(:opposition_assists) %>
+    <%= render "players/form_row", label: "Critical errors", value: career.season_line.critical_errors, reading: career.form.on(:critical_errors) %>
   </dl>
   <p class="form-note">
     Arrows compare this season with the rest of <%= name %>&rsquo;s <%= career.team.name %> career.

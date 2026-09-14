@@ -6,7 +6,7 @@ class PlayTest < ActiveSupport::TestCase
   test "the starter set is worth what #16 settled on" do
     assert_equal 1,  Play.new(kind: :bomb_catch).points
     assert_equal(-1, Play.new(kind: :dropped_bomb).points)
-    assert_equal(-2, Play.new(kind: :opposition_assist).points)
+    assert_equal(-8, Play.new(kind: :critical_error).points)
   end
 
   test "a play the app does not record cannot be written" do
@@ -32,7 +32,7 @@ class PlayTest < ActiveSupport::TestCase
   test "a play never moves verification" do
     assert @fixture.reload.stats_verified
 
-    @fixture.plays.create!(player: players(:john), kind: :opposition_assist)
+    @fixture.plays.create!(player: players(:john), kind: :critical_error)
 
     assert @fixture.reload.stats_verified
   end

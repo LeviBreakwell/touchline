@@ -21,7 +21,7 @@ const DRAG_THRESHOLD = 12
 const PLAY_KINDS = [
   { kind: "bomb_catch", label: "Bomb catch", value: "+1", sign: "plus" },
   { kind: "dropped_bomb", label: "Dropped bomb", value: "−1", sign: "minus" },
-  { kind: "opposition_assist", label: "Opposition assist", value: "−2", sign: "minus" }
+  { kind: "critical_error", label: "Critical error", value: "−8", sign: "minus" }
 ]
 
 // The Remove section of that same menu: undoing something entered by mistake
@@ -34,7 +34,7 @@ const REMOVALS = [
   { what: "assist", data: "assists", label: "Remove an assist" },
   { what: "bomb_catch", data: "bombCatches", label: "Remove a bomb catch" },
   { what: "dropped_bomb", data: "droppedBombs", label: "Remove a dropped bomb" },
-  { what: "opposition_assist", data: "oppositionAssists", label: "Remove an opposition assist" }
+  { what: "critical_error", data: "criticalErrors", label: "Remove a critical error" }
 ]
 
 export default class extends Controller {
@@ -373,7 +373,7 @@ export default class extends Controller {
       const target = this.#card(over)
       this.dragChipTarget.innerHTML =
         `<span>${this.#firstName(g.name)} → ${this.#firstName(target.dataset.playerName)}</span>
-         <span class="val">assist <b>+1</b> · try <i>+2</i></span>`
+         <span class="val">assist <b>+4</b> · try <i>+8</i></span>`
       // clear of the thumb, and clear of the screen edge
       const half = 84
       this.dragChipTarget.style.left = `${Math.max(half + 8, Math.min(window.innerWidth - half - 8, x2))}px`

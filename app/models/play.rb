@@ -10,9 +10,9 @@ class Play < ApplicationRecord
   # this is not called an infringement. Bomb catch exists so that the set does
   # not punish going up for the ball while paying nothing for catching it.
   POINTS = {
-    bomb_catch:        1,
-    dropped_bomb:      -1,
-    opposition_assist: -2
+    bomb_catch:     1,
+    dropped_bomb:   -1,
+    critical_error: -8
   }.freeze
 
   belongs_to :fixture

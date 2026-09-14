@@ -19,7 +19,7 @@ class Form
   POLARITY = {
     tries: :up_is_good, assists: :up_is_good, points: :up_is_good,
     bomb_catches: :up_is_good, catch_rate: :up_is_good,
-    dropped_bombs: :up_is_bad, opposition_assists: :up_is_bad
+    dropped_bombs: :up_is_bad, critical_errors: :up_is_bad
   }.freeze
 
   Reading = Struct.new(:stat, :direction, :certain, keyword_init: true) do

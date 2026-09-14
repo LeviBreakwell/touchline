@@ -15,7 +15,7 @@ class Leaderboard
     assists:            Touchdown::ASSIST_POINTS,
     bomb_catches:       Play::POINTS[:bomb_catch],
     dropped_bombs:      Play::POINTS[:dropped_bomb],
-    opposition_assists: Play::POINTS[:opposition_assist]
+    critical_errors:    Play::POINTS[:critical_error]
   }.freeze
 
   # Play kinds are named for one occurrence; a tally counts many.
@@ -24,12 +24,12 @@ class Leaderboard
   def self.points_for(totals) = POINTS.sum { |tally, value| totals[tally].to_i * value }
 
   Row = Struct.new(:player, :tries, :assists, :bomb_catches, :dropped_bombs,
-                   :opposition_assists, :games, :movement, :streak, keyword_init: true) do
+                   :critical_errors, :games, :movement, :streak, keyword_init: true) do
     def points = Leaderboard.points_for(to_h)
 
     # Both negatives under one column: they stack, so this can exceed the number
     # of distinct incidents.
-    def negative_plays = dropped_bombs + opposition_assists
+    def negative_plays = dropped_bombs + critical_errors
 
     # Places gained since the game before last, positive upward. Nil when there
     # is no earlier position to measure against — a debut, or every row on the
@@ -42,7 +42,7 @@ class Leaderboard
   # One Player's game: everything the board counts off, gathered per appearance
   # so movement and streaks can be measured game by game.
   Entry = Struct.new(:player_id, :fixture_id, :date, :tries, :assists,
-                     :bomb_catches, :dropped_bombs, :opposition_assists, :appeared) do
+                     :bomb_catches, :dropped_bombs, :critical_errors, :appeared) do
     def points = Leaderboard.points_for(to_h)
   end
 
@@ -122,7 +122,7 @@ class Leaderboard
         assists:            list.sum(&:assists),
         bomb_catches:       list.sum(&:bomb_catches),
         dropped_bombs:      list.sum(&:dropped_bombs),
-        opposition_assists: list.sum(&:opposition_assists),
+        critical_errors:    list.sum(&:critical_errors),
         games:              list.count(&:appeared)
       } ]
     }.sort_by { |player_id, totals|
