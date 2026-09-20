@@ -62,6 +62,20 @@ class SeasonsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".scorer-name", text: "Jane", count: 0
   end
 
+  test "a finals fixture is labelled with its round on its card" do
+    fixtures(:played_with_stats).update!(finals_label: "Grand Final")
+
+    get team_season_path(@team, @season)
+
+    assert_select ".badge-finals", text: "Grand Final"
+  end
+
+  test "an ordinary fixture gets no finals badge" do
+    get team_season_path(@team, @season)
+
+    assert_select ".badge-finals", count: 0
+  end
+
   test "a fixture with no stats entered gets no scorer strip" do
     get team_season_path(@team, @season)
 
@@ -79,5 +93,68 @@ class SeasonsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as users(:stranger)
     get team_season_path(@team, @season)
     assert_select ".record-prompt", count: 0
+  end
+
+  # ── THE LADDER TAB ─────────────────────────────────────────────────────────
+  #
+  # Not the player Leaderboard — the TRL division table, scraped into
+  # Standing. See SpawtzScraperTest for how it gets there.
+
+  test "the ladder tab is offered for a team linked to TRL" do
+    get team_season_path(@team, @season)
+
+    assert_select ".tabs a", text: "Ladder"
+  end
+
+  test "the ladder tab is hidden for a team that never linked TRL" do
+    @team.update!(spawtz_team_id: nil)
+
+    get team_season_path(@team, @season)
+
+    assert_select ".tabs", count: 0
+  end
+
+  test "the ladder shows every team's row, best first" do
+    get ladder_team_season_path(@team, @season)
+
+    assert_response :success
+    assert_select ".ladder-table tbody tr", 2
+    names = css_select(".ladder-table tbody tr td:nth-child(2)").map { |td| td.text.strip }
+    assert_equal [ "Just The Lads", "Warthogs" ], names
+  end
+
+  test "a rival team also on Touchline is a link to their page" do
+    get ladder_team_season_path(@team, @season)
+
+    assert_select "td a[href=?]", team_path(teams(:just_the_lads)), text: "Just The Lads"
+  end
+
+  test "a team not on Touchline is plain text, not a dead link" do
+    teams(:just_the_lads).update!(spawtz_team_id: "not-203043")
+
+    get ladder_team_season_path(@team, @season)
+
+    assert_select "td a", text: "Just The Lads", count: 0
+    assert_select ".ladder-table", text: /Just The Lads/
+  end
+
+  test "our own row is highlighted on the ladder" do
+    get ladder_team_season_path(@team, @season)
+
+    assert_select ".ladder-table-us", text: /Warthogs/
+  end
+
+  test "a season with no ladder synced yet shows an empty state, not an error" do
+    get ladder_team_season_path(@team, seasons(:summer_2025))
+
+    assert_response :success
+    assert_select ".ladder-table", count: 0
+    assert_select ".empty"
+  end
+
+  test "unauthenticated user can view the ladder" do
+    delete session_path
+    get ladder_team_season_path(@team, @season)
+    assert_response :success
   end
 end

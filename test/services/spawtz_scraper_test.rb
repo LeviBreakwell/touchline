@@ -62,6 +62,25 @@ class SpawtzScraperTest < ActiveSupport::TestCase
     %(<html><body><h1>Bardon Mondays - 2026 Spring - Current Standings</h1>#{body}</body></html>)
   end
 
+  # The real standings row, all thirteen cells of it: position | team | Pld |
+  # W | L | D | FF | FA | F | A | Dif | B | Pts. `teams` entries are
+  # [name, team_id, [played, won, lost, drawn, ff, fa, f, a, dif, bonus, pts]].
+  def full_standings_html(*divisions)
+    body = divisions.map { |name, division_id, teams|
+      rows = teams.map { |team_name, team_id, stats|
+        cells = [ "<td>tiebreak</td>",
+                  %(<td class="STTeamCell"><a href="/Leagues/TeamProfile?VenueId=200025&amp;TeamId=#{team_id}) +
+                  %(&amp;LeagueId=200082&amp;SeasonId=1500001&amp;DivisionId=#{division_id}">#{team_name}</a></td>) ] +
+                  stats.map { |v| "<td>#{v}</td>" }
+        "<tr>#{cells.join}</tr>"
+      }.join
+      %(<h3>#{name}</h3><table class="STTable"><tr><td></td><td>Team</td><td>Pld</td><td>W</td><td>L</td>) +
+        %(<td>D</td><td>FF</td><td>FA</td><td>F</td><td>A</td><td>Dif</td><td>B</td><td>Pts</td></tr>#{rows}</table>)
+    }.join
+
+    %(<html><body><h1>Bardon Mondays - 2026 Spring - Current Standings</h1>#{body}</body></html>)
+  end
+
   # Two pages are fetched per sync — the standings and the draw — so the stub
   # has to answer by URL, and it keeps them for the tests that care what was
   # asked for.
@@ -263,5 +282,81 @@ class SpawtzScraperTest < ActiveSupport::TestCase
 
     assert_equal 1, @season.fixtures.reload.count
     assert_nil @team.reload.spawtz_division_id
+  end
+
+  # ── THE FULL LADDER ───────────────────────────────────────────────────────
+  #
+  # ladder_position/ladder_size say where we finished; Standing is the table
+  # that number was read off, kept in full so the Season screen can show every
+  # team rather than just ours.
+
+  FULL_MENS = [ "Men's", "1402627", [
+    [ "Just The Lads", "203043", [ 7, 6, 1, 0, 0, 0, 46, 23, 23, 7, 31 ] ],
+    [ "Warthogs",      "99999",  [ 7, 4, 3, 0, 0, 0, 35, 23, 12, 6, 22 ] ],
+    [ ".BYEmens",      "202799", [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ]
+  ] ].freeze
+
+  FULL_MIXED = [ "Mixed 1/2", "1402621", [
+    [ "DUNDA", "202987", [ 7, 6, 0, 1, 0, 0, 49, 17, 32, 8, 34 ] ]
+  ] ].freeze
+
+  def sync_with_full_standings(*divisions)
+    sync_pages(draw: draw_html([ [ "Mon 27 Jul 2026", "8:25PM", "Le Mans", "5 - 4" ] ]),
+               standings: full_standings_html(*divisions))
+  end
+
+  test "every team in our division lands on the ladder" do
+    sync_with_full_standings(FULL_MENS)
+
+    assert_equal [ "Just The Lads", "Warthogs" ], @season.standings.by_position.pluck(:team_name)
+  end
+
+  test "a bye is not given a row on the ladder" do
+    sync_with_full_standings(FULL_MENS)
+
+    assert_not @season.standings.exists?(team_name: ".BYEmens")
+  end
+
+  test "a team from another division does not appear on our ladder" do
+    sync_with_full_standings(FULL_MIXED, FULL_MENS)
+
+    assert_not @season.standings.exists?(team_name: "DUNDA")
+  end
+
+  test "our own row is the one the season screen highlights" do
+    sync_with_full_standings(FULL_MENS)
+
+    us = @season.standings.find_by(team_name: "Warthogs")
+    assert us.us?(@team)
+    assert_not @season.standings.find_by(team_name: "Just The Lads").us?(@team)
+  end
+
+  test "every stat column is read into the row, negative difference included" do
+    sync_with_full_standings([ "Men's", "1402627", [
+      [ "Warthogs", "99999", [ 7, 2, 5, 0, 1, 0, 20, 42, -22, 4, 8 ] ]
+    ] ])
+
+    row = @season.standings.sole
+    assert_equal [ 1, 7, 2, 5, 0, 1, 0, 20, 42, -22, 4, 8 ],
+      [ row.position, row.played, row.won, row.lost, row.drawn, row.forfeits_for,
+        row.forfeits_against, row.points_for, row.points_against, row.difference,
+        row.bonus_points, row.points ]
+  end
+
+  test "the ladder is replaced wholesale on the next sync" do
+    sync_with_full_standings(FULL_MENS)
+    assert_equal 2, @season.standings.count
+
+    sync_with_full_standings([ "Men's", "1402627", [ [ "Warthogs", "99999", [ 8, 5, 3, 0, 0, 0, 40, 30, 10, 5, 25 ] ] ] ])
+
+    assert_equal [ "Warthogs" ], @season.standings.reload.pluck(:team_name)
+    assert_equal 25, @season.standings.sole.points
+  end
+
+  test "a standings row of an unexpected width is skipped rather than guessed at" do
+    sync_with_standings
+
+    assert_equal 0, @season.standings.reload.count,
+      "the minimal standings fixture has too few cells to be a real row — it must be skipped, not misread"
   end
 end

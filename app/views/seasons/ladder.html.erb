@@ -1,0 +1,63 @@
+<% content_for :title, "#{@season.name} ladder – #{@team.name}" %>
+
+<%# ── THE LADDER TAB: the division standings TRL publishes ──
+    Every team in the division, not just ours — see Standing. The player
+    board is the Team tab's Leaderboard; this one is TRL's own table. %>
+<div class="tab-head">
+  <div class="tab-head-title">
+    <h1><%= @season.name %></h1>
+    <p class="card-meta"><%= @team.name %></p>
+  </div>
+</div>
+
+<% if @seasons.many? %>
+  <div class="scope-row" data-controller="nav-select">
+    <select class="scope-select" data-action="change->nav-select#go" aria-label="Season">
+      <% @seasons.each do |season| %>
+        <option value="<%= ladder_team_season_path(@team, season) %>"
+                <%= "selected" if season == @season %>><%= season.name %></option>
+      <% end %>
+    </select>
+  </div>
+<% end %>
+
+<%= render "seasons/tabs", team: @team, season: @season, active: :ladder %>
+
+<% if @standings.empty? %>
+  <div class="empty">
+    <p>No ladder yet. It fills in the next time this team's fixtures sync.</p>
+  </div>
+<% else %>
+  <div class="card" style="padding:0; overflow-x:auto;">
+    <table class="season-table ladder-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Team</th><th>P</th><th>W</th><th>L</th><th>D</th>
+          <th>F</th><th>A</th><th>+/-</th><th class="points">Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @standings.each do |standing| %>
+          <tr class="<%= "ladder-table-us" if standing.us?(@team) %>">
+            <td><%= standing.position %></td>
+            <td>
+              <% if (linked_team = @touchline_teams[standing.spawtz_team_id]) %>
+                <%= link_to standing.team_name, team_path(linked_team) %>
+              <% else %>
+                <%= standing.team_name %>
+              <% end %>
+            </td>
+            <td><%= standing.played %></td>
+            <td><%= standing.won %></td>
+            <td><%= standing.lost %></td>
+            <td><%= standing.drawn %></td>
+            <td><%= standing.points_for %></td>
+            <td><%= standing.points_against %></td>
+            <td><%= standing.difference %></td>
+            <td class="points"><%= standing.points %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_14_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,28 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_14_000001) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "standings", force: :cascade do |t|
+    t.bigint "season_id", null: false
+    t.string "spawtz_team_id", null: false
+    t.string "team_name", null: false
+    t.integer "position", null: false
+    t.integer "played"
+    t.integer "won"
+    t.integer "lost"
+    t.integer "drawn"
+    t.integer "forfeits_for"
+    t.integer "forfeits_against"
+    t.integer "points_for"
+    t.integer "points_against"
+    t.integer "difference"
+    t.integer "bonus_points"
+    t.integer "points"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["season_id", "spawtz_team_id"], name: "index_standings_on_season_id_and_spawtz_team_id", unique: true
+    t.index ["season_id"], name: "index_standings_on_season_id"
+  end
+
   create_table "team_memberships", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "team_id", null: false
@@ -155,6 +177,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_14_000001) do
   add_foreign_key "plays", "players", deferrable: :deferred
   add_foreign_key "seasons", "teams", deferrable: :deferred
   add_foreign_key "sessions", "users", deferrable: :deferred
+  add_foreign_key "standings", "seasons"
   add_foreign_key "team_memberships", "teams", deferrable: :deferred
   add_foreign_key "team_memberships", "users", deferrable: :deferred
   add_foreign_key "touchdowns", "fixtures", deferrable: :deferred

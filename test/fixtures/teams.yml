@@ -6,3 +6,11 @@ warthogs:
   spawtz_season_id: "1400063"
   spawtz_team_id: "99999"
   invite_token: "test-token-abc"
+
+# Also on Touchline — the standings fixture "rival" carries this same
+# spawtz_team_id, so it's the other synced team the ladder should link to.
+just_the_lads:
+  name: Just The Lads
+  location: Brisbane
+  spawtz_team_id: "203043"
+  invite_token: "test-token-jtl"

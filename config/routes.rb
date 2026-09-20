@@ -30,6 +30,8 @@ Rails.application.routes.draw do
       member { patch :claim }
     end
     resources :seasons, only: %i[show] do
+      member { get :ladder }
+
       # The match ladder writes as it goes: one row per gesture, inserted or
       # deleted. There is no sheet to submit.
       resources :fixtures, only: %i[show] do

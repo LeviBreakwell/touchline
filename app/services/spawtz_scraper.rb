@@ -10,12 +10,16 @@ class SpawtzScraper
   ORDINARY_CELLS = 5
   FINALS_CELLS   = 6
 
+  # Position | Team | Pld | W | L | D | FF | FA | F | A | Dif | B | Pts — the
+  # full row Spawtz's standings table publishes for one division.
+  STANDINGS_CELLS = 13
+
   def initialize(team)
     @team = team
   end
 
   def sync_fixtures
-    return unless @team.spawtz_team_id.present?
+    return unless @team.linked_to_spawtz?
 
     refresh_season_if_changed
 
@@ -36,6 +40,7 @@ class SpawtzScraper
     doc = Nokogiri::HTML(URI.open(url, "User-Agent" => USER_AGENT))
     season = find_or_create_season(standings)
     record_ladder(season, standings)
+    record_standings(season, standings)
 
     seen_ids = []
 
@@ -208,6 +213,55 @@ class SpawtzScraper
       ladder_position: contenders.index(row)&.+(1),
       ladder_size: contenders.size
     )
+  end
+
+  # The same division table, in full, so the Season screen can show every
+  # team's row rather than just our own position. Re-read and replaced whole
+  # each sync — a bye's row is dropped exactly as record_ladder drops it, and a
+  # team that changed its name is a new row here rather than a stale one kept
+  # around under the old one.
+  def record_standings(season, standings)
+    row = team_link(standings)&.ancestors("tr")&.first
+    return if row.nil?
+
+    rows = row.ancestors("table").first.css("tr").drop(1)
+      .reject { |tr| tr.at_css(".STTeamCell")&.text.to_s.strip.start_with?(".BYE") }
+
+    seen_ids = rows.each_with_index.filter_map { |tr, index| upsert_standing(season, tr, index + 1) }
+    season.standings.where.not(id: seen_ids).destroy_all
+  end
+
+  def upsert_standing(season, tr, position)
+    cells = tr.css("td")
+    unless cells.size == STANDINGS_CELLS
+      Rails.logger.error(
+        "SpawtzScraper: skipping a #{cells.size}-cell standings row for team #{@team.id} — " \
+        "expected #{STANDINGS_CELLS}. The Spawtz layout has changed."
+      )
+      return nil
+    end
+
+    link = tr.at_css("td.STTeamCell a")
+    spawtz_team_id = link&.[](:href).to_s[/TeamId=(\d+)/, 1]
+    return nil if spawtz_team_id.blank?
+
+    entry = season.standings.find_or_initialize_by(spawtz_team_id: spawtz_team_id)
+    entry.update!(
+      position: position,
+      team_name: link.text.strip,
+      played: cells[2].text.strip.to_i,
+      won: cells[3].text.strip.to_i,
+      lost: cells[4].text.strip.to_i,
+      drawn: cells[5].text.strip.to_i,
+      forfeits_for: cells[6].text.strip.to_i,
+      forfeits_against: cells[7].text.strip.to_i,
+      points_for: cells[8].text.strip.to_i,
+      points_against: cells[9].text.strip.to_i,
+      difference: cells[10].text.strip.to_i,
+      bonus_points: cells[11].text.strip.to_i,
+      points: cells[12].text.strip.to_i
+    )
+    entry.id
   end
 
   # Our own name in whichever ladder it appears in, matched on the Spawtz team

@@ -247,6 +247,7 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .badge-admin    { background: var(--green-light); color: var(--green-dark); }
 .badge-verified { background: var(--green-light); color: var(--green-dark); }
 .badge-over     { background: #2d1414; color: var(--red); }
+.badge-finals   { background: #2d1a00; color: var(--flame); }
 
 /* LEADERBOARD TABLE */
 .leaderboard { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -541,6 +542,14 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 .season-table tr:last-child td { border-bottom: none; }
 .season-table .points { font-weight: 700; color: var(--green-dark); }
 .season-table a { color: var(--gray-800); text-decoration: none; }
+
+/* LADDER TABLE — the division standings TRL publishes, all ten-odd columns of
+   it on a phone screen, so it scrolls sideways inside its own card rather
+   than the page. */
+.ladder-table { font-size: 0.8rem; }
+.ladder-table th, .ladder-table td { padding: 0.5rem 0.4rem; white-space: nowrap; }
+.ladder-table th:nth-child(2), .ladder-table td:nth-child(2) { text-align: left; white-space: normal; }
+.ladder-table-us td { background: var(--green-light); color: var(--green-dark); font-weight: 600; }
 
 /* BACK BUTTON — thumb-sized, this app lives on a phone */
 .btn-back {

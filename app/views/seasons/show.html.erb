@@ -21,6 +21,8 @@
   </div>
 <% end %>
 
+<%= render "seasons/tabs", team: @team, season: @season, active: :fixtures %>
+
 <%# ── ENTER STATS PROMPT (most recently played game with no stats yet) ── %>
 <% if @next_to_record && Current.user&.member_of?(@team) %>
   <%= link_to team_season_fixture_path(@team, @season, @next_to_record), class: "record-prompt" do %>
@@ -50,6 +52,7 @@
         <div class="date"><%= fixture.date&.strftime("%a %-d %b · %-I:%M%P") %></div>
       </div>
       <div class="fixture-status">
+        <% if fixture.final? %><span class="badge badge-finals"><%= fixture.finals_label %></span><% end %>
         <% if fixture.played? %>
           <div class="fixture-score"><%= fixture.our_score %> – <%= fixture.opponent_score %></div>
           <span class="badge badge-<%= fixture.result %>"><%= fixture.result.upcase %></span>

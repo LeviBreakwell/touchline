@@ -14,6 +14,12 @@ class Team < ApplicationRecord
     users.merge(TeamMembership.admin)
   end
 
+  # Whether this Team has been through the TRL browser and picked a Spawtz
+  # team to sync against. Gates anything scraped off TRL, the ladder tab
+  # included — there is nothing to show, or scrape, for a Team that never
+  # linked one.
+  def linked_to_spawtz? = spawtz_team_id.present?
+
   private
 
   def generate_invite_token

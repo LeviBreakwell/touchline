@@ -15,7 +15,7 @@ class TeamSettings
   def pending  = @team.team_memberships.pending.includes(:user)
   def accepted = @team.team_memberships.accepted.includes(:user)
 
-  def linked_to_spawtz? = @team.spawtz_team_id.present?
+  def linked_to_spawtz? = @team.linked_to_spawtz?
 
   def last_synced = @team.fixtures_synced_at
 end

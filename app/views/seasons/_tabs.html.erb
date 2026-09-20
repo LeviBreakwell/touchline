@@ -1,0 +1,12 @@
+<%# Fixtures vs Ladder, both scoped to the same team + season. Hidden
+    entirely for a Team that never linked a Spawtz team — there is no ladder
+    scraped for one, so there is nothing to switch to.
+    locals: team, season, active %>
+<% if team.linked_to_spawtz? %>
+  <nav class="tabs">
+    <%= link_to "Fixtures", team_season_path(team, season),
+                class: "tab #{"active" if active == :fixtures}" %>
+    <%= link_to "Ladder", ladder_team_season_path(team, season),
+                class: "tab #{"active" if active == :ladder}" %>
+  </nav>
+<% end %>

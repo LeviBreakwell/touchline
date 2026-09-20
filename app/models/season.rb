@@ -1,6 +1,7 @@
 class Season < ApplicationRecord
   belongs_to :team
   has_many :fixtures, dependent: :destroy
+  has_many :standings, dependent: :destroy
 
   validates :name, presence: true
 
