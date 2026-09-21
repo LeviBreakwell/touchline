@@ -9,6 +9,7 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", users(:member_user).name
     assert_select ".card-meta", text: /Joined/
     assert_select ".identity .level-number"
+    assert_select ".ladder--board .lcard .lcard-name", text: users(:member_user).name
     assert_select ".showcase .showcase-slot", Progression::SHOWCASE_SLOTS
     assert_select ".stat-tile-label", text: "Catch rate"
   end
@@ -70,6 +71,28 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".stat-tile-value", text: line.games.to_s
     assert_select "h2 .count", text: "all teams"
     assert_select "a[href=?]", team_path(other.team)
+  end
+
+  # A banner earned from a rare accolade only ever washes a leaderboard card —
+  # nothing on the profile itself showed it, so there was nowhere to actually
+  # see what picking one looks like before it shows up on a Team's board.
+  test "shows the card you'd be seen as on a leaderboard, banner included" do
+    user = users(:member_user)
+    user.update!(banner_key: "grand_final")   # -> banner-gold
+    sign_in_as user
+
+    get profile_path
+
+    assert_select ".ladder--board .lcard.banner-gold" do
+      assert_select ".lcard-name", text: user.name
+    end
+  end
+
+  test "the card preview carries no banner when none is picked" do
+    sign_in_as users(:member_user)
+    get profile_path
+
+    assert_select ".ladder--board .lcard[class*=banner-]", count: 0
   end
 
   test "requires authentication" do

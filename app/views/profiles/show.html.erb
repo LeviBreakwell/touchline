@@ -9,6 +9,7 @@
     The slots are a form and live behind Customise. This screen is the one you
     hand somebody. %>
 <%= render "shared/identity", user: @user, progression: @progression, name: @user.name %>
+<%= render "shared/card_preview", user: @user, progression: @progression, line: @line %>
 
 <div class="section-header">
   <h2 style="margin:0;">Showcase</h2>

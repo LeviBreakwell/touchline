@@ -1,0 +1,32 @@
+<%# The exact card a leaderboard renders you as, shown once here so a border
+    or a rare accolade's banner wash is actually visible before it shows up
+    on a Team's board. locals: user, progression, line %>
+<p class="card-meta" style="margin-bottom:0.35rem;">This is how you appear on a leaderboard</p>
+<div class="ladder ladder--board">
+  <div class="lcard claimed<%= " #{progression.banner_class}" if progression.banner_class %>">
+    <span class="lcard-rank">·</span>
+
+    <span class="lcard-avatar">
+      <%= border_ring(progression.border) %><%= player_initials(user) %>
+    </span>
+
+    <span class="lcard-who">
+      <span class="lcard-name"><%= user.name %></span>
+      <span class="lcard-title<%= " locked" unless progression.title %>">
+        <%= progression.title || "No title yet" %>
+      </span>
+    </span>
+
+    <span class="lcard-chips">
+      <span class="lchip g" title="Games"><%= line.games %></span>
+      <span class="lchip t<%= " on" if line.tries.positive? %>" title="Tries"><%= line.tries %></span>
+      <span class="lchip a<%= " on" if line.assists.positive? %>" title="Assists"><%= line.assists %></span>
+      <span class="lchip c<%= " on" if line.bomb_catches.positive? %>" title="Bomb catches"><%= line.bomb_catches %></span>
+      <span class="lchip e<%= " on" if line.negative_plays.positive? %>" title="Dropped bombs and critical errors"><%= line.negative_plays %></span>
+    </span>
+
+    <span class="lcard-pts <%= line.points.positive? ? "up" : line.points.negative? ? "down" : "zero" %>">
+      <%= "+" if line.points.positive? %><%= line.points %>
+    </span>
+  </div>
+</div>
