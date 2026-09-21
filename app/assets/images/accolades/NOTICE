@@ -1,4 +1,4 @@
-The thirteen accolade glyphs in this directory are Lucide icons, used unmodified
+The seventeen accolade glyphs in this directory are Lucide icons, used unmodified
 apart from whitespace. One notice for the set, which is the whole reason to
 borrow them rather than draw them.
 
@@ -33,6 +33,10 @@ Which Lucide icon each one is, since the filenames are ours and not theirs:
     grand-final          trophy
     top-of-the-ladder    crown
     clive-churchill      award
+    playmaker            zap
+    fullback             eye
+    bomb-squad           bomb
+    brain-fade           brain
 
 The geometry in ../borders is ours, hand-written: four border shapes and one
 level plaque, each a single <path>.

@@ -81,7 +81,7 @@ class ProgressionTest < ActiveSupport::TestCase
   # that there is nothing to get.
   test "every accolade is still to earn when nothing has been" do
     assert_equal Accolade.all.size, progression.left_to_earn
-    assert_equal 7, progression.unearned_one_offs.size
+    assert_equal 11, progression.unearned_one_offs.size
   end
 
   test "a ladder reports the next rung and the distance to it" do

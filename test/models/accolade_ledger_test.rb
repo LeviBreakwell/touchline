@@ -80,6 +80,46 @@ class AccoladeLedgerTest < ActiveSupport::TestCase
     assert_includes keys, "hat_trick"
   end
 
+  test "a Dally M Playmaker is three assists in one game" do
+    3.times { @fixture.touchdowns.create!(scorer: players(:john), assister: @jane) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "playmaker"
+  end
+
+  test "a Dally M Fullback is three bomb catches in one game" do
+    3.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "fullback"
+  end
+
+  test "the Bomb Squad is three dropped bombs in one game" do
+    3.times { @fixture.plays.create!(player: @jane, kind: :dropped_bomb) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "bomb_squad"
+  end
+
+  test "a Brain Fade is three critical errors in one game" do
+    3.times { @fixture.plays.create!(player: @jane, kind: :critical_error) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "brain_fade"
+  end
+
+  test "two of a kind is not a treble yet" do
+    2.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_not_includes keys, "fullback"
+  end
+
   # Scoped to one fixture's appearances, not the roster — which deletes the
   # changing-roster problem rather than solving it.
   test "a full house is everyone who took the field scoring" do

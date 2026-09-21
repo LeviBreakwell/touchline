@@ -11,6 +11,14 @@ class AccoladeLedger
   # A season is not undefeated until it is over, and one game is not a season.
   UNDEFEATED_MINIMUM = 3
 
+  # Any stat racked up this many times in one game — the per-game equivalent
+  # of a tiered rung, decided by the count in this Fixture alone.
+  TREBLE_MINIMUM = 3
+  TREBLES = {
+    tries: "hat_trick", assists: "playmaker", bomb_catches: "fullback",
+    dropped_bombs: "bomb_squad", critical_errors: "brain_fade"
+  }.freeze
+
   class << self
     # Everything the banked history earned, all at once. This is the payoff the
     # claim flow exists for: a three-season veteran arrives with a whole
@@ -55,7 +63,9 @@ class AccoladeLedger
       award_player(ladder.mvp.player, "mvp", subject) if ladder.mvp
       award_player(ladder.mvp.player, "clive_churchill", subject) if ladder.mvp && won_grand_final
 
-      played.each { |row| award_player(row.player, "hat_trick", subject) if row.tries >= 3 }
+      played.each do |row|
+        TREBLES.each { |stat, key| award_player(row.player, key, subject) if row[stat] >= TREBLE_MINIMUM }
+      end
 
       if played.size >= FULL_HOUSE_MINIMUM && played.all? { |row| row.tries.positive? }
         played.each { |row| award_player(row.player, "full_house", subject) }

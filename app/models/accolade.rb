@@ -49,7 +49,7 @@ class Accolade
 
   # The glyph each one wears in the showcase — the only place accolade art
   # appears at all. A whole ladder shares one glyph, which is what keeps the
-  # art bill at twelve files rather than thirty-six.
+  # art bill at seventeen files rather than forty-one.
   GLYPHS = {
     appearances: "appearances", tries: "tries", assists: "assists",
     bomb_catches: "bomb-catches", dropped_bombs: "dropped-bombs",
@@ -61,6 +61,14 @@ class Accolade
       description: "Most points in a game, Plays included" },
     { key: "hat_trick",         title: "Hat-trick Hero",    rarity: :uncommon, glyph: "hat-trick",
       description: "Three tries in one game" },
+    { key: "playmaker",         title: "Dally M Playmaker", rarity: :uncommon, glyph: "playmaker",
+      description: "Three assists in one game" },
+    { key: "fullback",          title: "Dally M Fullback",  rarity: :uncommon, glyph: "fullback",
+      description: "Three bomb catches in one game" },
+    { key: "bomb_squad",        title: "The Bomb Squad",    rarity: :uncommon, glyph: "bomb-squad",
+      description: "Three dropped bombs in one game" },
+    { key: "brain_fade",        title: "Brain Fade",        rarity: :uncommon, glyph: "brain-fade",
+      description: "Three critical errors in one game" },
     { key: "full_house",        title: "Full House",        rarity: :uncommon, glyph: "full-house",
       description: "Everyone who took the field scored" },
     { key: "undefeated_season", title: "Invincible",        rarity: :rare,   glyph: "undefeated",
