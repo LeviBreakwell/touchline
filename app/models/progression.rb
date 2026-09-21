@@ -8,6 +8,10 @@ class Progression
   APPEARANCE_XP = 10
   STAT_XP = 1
 
+  # A prelim or a Grand Final is winner-takes-all in a way an ordinary round
+  # is not, so turning up — and every stat recorded — is worth double there.
+  FINALS_XP_MULTIPLIER = 2
+
   def initialize(user, xp: nil, awards: nil, line: nil)
     @user = user
     @xp = xp
@@ -29,12 +33,27 @@ class Progression
     tries       = Touchdown.joins(:scorer).where(players: { user_id: ids }).group("players.user_id").count
     assists     = Touchdown.joins(:assister).where(players: { user_id: ids }).group("players.user_id").count
     plays       = Play.joins(:player).where(players: { user_id: ids }).group("players.user_id").count
-    awards      = AccoladeAward.where(user_id: ids).group_by(&:user_id)
+
+    # The same four tallies, but only for the rounds worth double — see
+    # FINALS_XP_MULTIPLIER.
+    finals_appearances = Appearance.joins(:player, :fixture).merge(Fixture.major_final)
+                                    .where(players: { user_id: ids }).group("players.user_id").count
+    finals_tries       = Touchdown.joins(:scorer, :fixture).merge(Fixture.major_final)
+                                   .where(players: { user_id: ids }).group("players.user_id").count
+    finals_assists     = Touchdown.joins(:assister, :fixture).merge(Fixture.major_final)
+                                   .where(players: { user_id: ids }).group("players.user_id").count
+    finals_plays       = Play.joins(:player, :fixture).merge(Fixture.major_final)
+                              .where(players: { user_id: ids }).group("players.user_id").count
+
+    awards = AccoladeAward.where(user_id: ids).group_by(&:user_id)
+    boost  = FINALS_XP_MULTIPLIER - 1
 
     User.where(id: ids).to_h do |user|
       earned = awards.fetch(user.id, [])
       xp = (appearances.fetch(user.id, 0) * APPEARANCE_XP) +
            ((tries.fetch(user.id, 0) + assists.fetch(user.id, 0) + plays.fetch(user.id, 0)) * STAT_XP) +
+           (finals_appearances.fetch(user.id, 0) * APPEARANCE_XP * boost) +
+           ((finals_tries.fetch(user.id, 0) + finals_assists.fetch(user.id, 0) + finals_plays.fetch(user.id, 0)) * STAT_XP * boost) +
            earned.sum { |award| award.accolade&.xp.to_i }
 
       [ user.id, new(user, xp: xp, awards: earned) ]
@@ -47,8 +66,20 @@ class Progression
   # is worth twice anyone's best possible single game, and there is nothing to
   # cap — nor a rule waiting to fire on somebody's best night.
   def xp
-    @xp ||= (line.games * APPEARANCE_XP) + (stats_recorded * STAT_XP) + accolade_xp
+    @xp ||= (line.games * APPEARANCE_XP) + (stats_recorded * STAT_XP) + finals_bonus + accolade_xp
   end
+
+  # The extra half of FINALS_XP_MULTIPLIER, paid only on what was earned in a
+  # prelim or a Grand Final. Added on top of the ordinary tally above rather
+  # than computed in place of it, so a normal season is untouched.
+  def finals_bonus
+    boost = FINALS_XP_MULTIPLIER - 1
+    (finals_line.games * APPEARANCE_XP * boost) + (finals_stats_recorded * STAT_XP * boost)
+  end
+
+  def finals_line = @finals_line ||= StatLine.for(@user.players.select(:id), fixtures: Fixture.major_final)
+
+  def finals_stats_recorded = finals_line.tries + finals_line.assists + finals_line.plays.values.sum
 
   # What a card needs: a border, a title, and the wash behind the name. Nothing
   # here touches the stat line, which is the expensive half.

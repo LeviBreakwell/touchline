@@ -82,4 +82,41 @@ class FixtureTest < ActiveSupport::TestCase
     assert_includes Fixture.verified, fixtures(:played_with_stats)
     assert_not_includes Fixture.verified, fixtures(:awaiting_trl)
   end
+
+  # ── FINALS ────────────────────────────────────────────────────────────────
+
+  test "a preliminary final or grand final is a major final, whatever it is numbered" do
+    f = fixtures(:played_with_stats)
+
+    f.update!(finals_label: "Preliminary Final")
+    assert f.major_final?
+
+    f.update!(finals_label: "Grand Final")
+    assert f.major_final?
+  end
+
+  test "a semi is a final but not a major final" do
+    f = fixtures(:played_with_stats)
+    f.update!(finals_label: "Semi Final 1")
+
+    assert f.final?
+    assert_not f.major_final?
+  end
+
+  test "an ordinary round is neither" do
+    f = fixtures(:played_with_stats)
+
+    assert_not f.final?
+    assert_not f.major_final?
+  end
+
+  test "major_final scope matches the same fixtures as the predicate" do
+    prelim = fixtures(:played_with_stats)
+    prelim.update!(finals_label: "Preliminary Final")
+    semi = fixtures(:played_no_stats)
+    semi.update!(finals_label: "Semi Final 1")
+
+    assert_includes Fixture.major_final, prelim
+    assert_not_includes Fixture.major_final, semi
+  end
 end

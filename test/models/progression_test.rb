@@ -130,6 +130,40 @@ class ProgressionTest < ActiveSupport::TestCase
     assert_in_delta 0.0, tries.fraction, 0.01
   end
 
+  # ── FINALS ────────────────────────────────────────────────────────────────
+
+  test "a grand final pays double on the appearance and every stat" do
+    fixtures(:summer_final).update!(finals_label: "Grand Final")
+
+    assert_equal 20, progression.xp, "Jane's one appearance was in the Grand Final"
+
+    fixtures(:summer_final).touchdowns.create!(scorer: @player)
+    assert_equal 22, progression.xp, "the try itself is worth double too"
+  end
+
+  test "a preliminary final pays the same boost as the Grand Final" do
+    fixtures(:summer_final).update!(finals_label: "Preliminary Final")
+
+    assert_equal 20, progression.xp
+  end
+
+  test "a semi does not pay the finals boost" do
+    fixtures(:summer_final).update!(finals_label: "Semi Final 1")
+
+    assert_equal 10, progression.xp, "only a preliminary or grand final is worth more"
+  end
+
+  test "an ordinary round is untouched by the finals boost" do
+    assert_equal 10, progression.xp
+  end
+
+  test "the batch says the same thing as asking one at a time, finals boost included" do
+    fixtures(:summer_final).update!(finals_label: "Grand Final")
+    batched = Progression.batch([ @user.id ])
+
+    assert_equal progression.xp, batched[@user.id].xp
+  end
+
   test "the batch says the same thing as asking one at a time" do
     @user.accolade_awards.create!(key: "tries_5")
     batched = Progression.batch([ @user.id, users(:admin_user).id ])

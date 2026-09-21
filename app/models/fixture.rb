@@ -30,6 +30,13 @@ class Fixture < ApplicationRecord
   # "Grand Final" — and labels nothing else.
   def final? = finals_label.present?
 
+  # The two rounds where a loss ends the season: whatever "Preliminary Final"
+  # is called that week, and the Grand Final itself. Worth more XP than a
+  # semi, which is why this is its own check rather than reusing #final?.
+  MAJOR_FINAL_LABEL = /preliminary final|grand final/i
+  scope :major_final, -> { where("finals_label ~* ?", MAJOR_FINAL_LABEL.source) }
+  def major_final? = finals_label.to_s.match?(MAJOR_FINAL_LABEL)
+
   # Everyone defaults to played, and that default becomes rows the moment
   # somebody first writes to this Fixture — entering anything at all is when
   # the squad gets asserted. Idempotent: once a single Appearance exists those
