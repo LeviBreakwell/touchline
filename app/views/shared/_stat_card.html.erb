@@ -23,6 +23,10 @@
 
   <span class="lcard-avatar">
     <%= border_ring(standing&.border) %><%= player_initials(row.player) %>
+    <% if standing %>
+      <span class="lcard-level metal-<%= standing.border&.metal || "silver" %>" style="<%= mask_of("borders/badge.svg") %>"></span>
+      <span class="lcard-level-number"><%= standing.level %></span>
+    <% end %>
   </span>
 
   <span class="lcard-who">

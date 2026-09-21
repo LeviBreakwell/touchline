@@ -800,6 +800,16 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
    nothing until somebody claims it, and the card has to say so. */
 .lcard.unclaimed .lcard-avatar { border-style: dashed; border-color: var(--gray-200); color: var(--gray-400); background: transparent; }
 
+/* The same plaque as .level-badge on the profile, cut down to fit a card 18px
+   shorter than the identity portrait it was sized for. */
+.lcard-level { position: absolute; right: -3px; bottom: -3px; width: 15px; height: 15px; }
+.lcard-level-number {
+  position: absolute; right: -3px; bottom: -3px;
+  width: 15px; height: 15px;
+  display: grid; place-items: center;
+  font-size: 0.44rem; font-weight: 800; color: #12161c;
+}
+
 .lcard-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .lcard-name { font-size: 0.82rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lcard.unclaimed .lcard-name { font-weight: 500; font-style: italic; color: var(--gray-600); }

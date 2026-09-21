@@ -8,6 +8,8 @@
 
     <span class="lcard-avatar">
       <%= border_ring(progression.border) %><%= player_initials(user) %>
+      <span class="lcard-level metal-<%= progression.border&.metal || "silver" %>" style="<%= mask_of("borders/badge.svg") %>"></span>
+      <span class="lcard-level-number"><%= progression.level %></span>
     </span>
 
     <span class="lcard-who">
