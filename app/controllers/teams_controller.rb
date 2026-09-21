@@ -36,7 +36,16 @@ class TeamsController < ApplicationController
       @unclaimed_players = @team.players.where(user_id: nil).order(:name) if @my_player.nil?
 
       @leaderboard_seasons = @team.seasons.by_recency
-      @leaderboard_season = @leaderboard_seasons.find_by(id: params[:season_id])
+      # Nothing in the query string means nobody has chosen a scope yet, which
+      # defaults to the season actually being played rather than every game the
+      # Team has ever recorded. "All time" is still one tap away — see the
+      # season_id=all link below — and stays sticky once picked.
+      @leaderboard_season =
+        case params[:season_id]
+        when nil     then @current_season
+        when "all"   then nil
+        else @leaderboard_seasons.find_by(id: params[:season_id])
+        end
       @leaderboard = Leaderboard.for(@team, season: @leaderboard_season)
     end
   end

@@ -52,7 +52,7 @@
 <% if @leaderboard_seasons&.any? %>
   <div class="scope-row" data-controller="nav-select">
     <select class="scope-select" data-action="change->nav-select#go" aria-label="Leaderboard scope">
-      <option value="<%= team_path(@team) %>" <%= "selected" if @leaderboard_season.nil? %>>All time</option>
+      <option value="<%= team_path(@team, season_id: "all") %>" <%= "selected" if @leaderboard_season.nil? %>>All time</option>
       <% @leaderboard_seasons.each do |season| %>
         <option value="<%= team_path(@team, season_id: season.id) %>"
                 <%= "selected" if @leaderboard_season == season %>><%= season.name %></option>

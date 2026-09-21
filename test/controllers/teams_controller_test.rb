@@ -17,12 +17,13 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
 
   # A dropdown rather than chips: two seasons a year is seven chips after three
   # years, wrapping across a phone.
-  test "leaderboard defaults to all-time totals across seasons" do
+  test "leaderboard defaults to the season most recently played, not all time" do
     get team_path(teams(:warthogs))
 
     assert_response :success
-    assert_select ".scope-select option[selected]", text: "All time"
-    assert_select ".ladder--board .lcard", 2       # John and Jane have both appeared
+    assert_select ".scope-select option[selected]", text: seasons(:winter_2026).name
+    assert_select ".ladder--board .lcard", 1       # Jane did not play that season
+    assert_select ".ladder--board .lcard-name", text: /John/
   end
 
   test "leaderboard can be filtered to a single season" do
@@ -32,6 +33,14 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".scope-select option[selected]", text: seasons(:winter_2026).name
     assert_select ".ladder--board .lcard", 1       # Jane did not play that season
     assert_select ".ladder--board .lcard-name", text: /John/
+  end
+
+  test "all time is one tap away, and totals across every season" do
+    get team_path(teams(:warthogs), season_id: "all")
+
+    assert_response :success
+    assert_select ".scope-select option[selected]", text: "All time"
+    assert_select ".ladder--board .lcard", 2       # John and Jane have both appeared
   end
 
   test "an unknown season id falls back to all-time" do
@@ -76,7 +85,7 @@ class TeamsControllerTest < ActionDispatch::IntegrationTest
   # is the only view an unclaimed roster entry has.
   test "your own name on the board goes to your profile, everyone else's to theirs" do
     sign_in_as users(:member_user)   # linked to Jane
-    get team_path(teams(:warthogs))
+    get team_path(teams(:warthogs), season_id: "all")   # Jane only played the older season
 
     assert_select "a.leaderboard-player[href=?]", profile_path, text: players(:jane).name
     assert_select "a.leaderboard-player[href=?]", team_player_path(teams(:warthogs), players(:john))
