@@ -25,6 +25,7 @@
       <div class="header-inner">
 
         <div class="header-left">
+          <%= link_to "?", support_path, class: "help-link", title: "Help & FAQ", aria: { label: "Help & FAQ" } %>
         </div>
 
         <% _home_path = if Current.user
@@ -50,6 +51,7 @@
                 <%= link_to "My Profile", profile_path, class: "nav-dropdown-link" %>
                 <%= link_to "My Teams", _home_path, class: "nav-dropdown-link" %>
                 <%= link_to "Find a team on TRL", trl_locations_path, class: "nav-dropdown-link" %>
+                <%= link_to "Help & FAQ", support_path, class: "nav-dropdown-link" %>
                 <div class="nav-dropdown-divider"></div>
                 <%= button_to "Sign out", session_path, method: :delete, class: "nav-dropdown-link nav-dropdown-signout" %>
               </div>

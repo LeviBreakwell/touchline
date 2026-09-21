@@ -18,7 +18,7 @@ class FixturesControllerTest < ActionDispatch::IntegrationTest
     get team_season_fixture_path(@team, @season, @fixture)
 
     assert_response :success
-    assert_select "[data-controller=match-ladder]"
+    assert_select "[data-controller~=match-ladder]"
     assert_select ".ladder--editable"
   end
 
@@ -28,7 +28,7 @@ class FixturesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".ladder"
-    assert_select "[data-controller=match-ladder]", count: 0
+    assert_select "[data-controller~=match-ladder]", count: 0
     assert_select ".ladder--editable", count: 0
   end
 

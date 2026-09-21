@@ -37,13 +37,17 @@ const REMOVALS = [
   { what: "critical_error", data: "criticalErrors", label: "Remove a critical error" }
 ]
 
+const HINT_DEFAULT = "Tap a card for a try · drag one onto another for the assist · hold for everything else. To scroll, use the strip on the left edge."
+const HINT_LOCKED = "Locked — scroll anywhere safely. Tap Unlock to enter stats again."
+
 export default class extends Controller {
-  static targets = ["board", "gutter", "dragLayer", "dragChip", "toast", "undo"]
+  static targets = ["board", "gutter", "dragLayer", "dragChip", "toast", "undo", "hint", "lock"]
   static values = { urls: Object, hold: { type: Number, default: 400 } }
 
   connect() {
     this.undoStack = []
     this.gesture = null
+    this.locked = false
     this.onDown = this.#down.bind(this)
     this.onMove = this.#move.bind(this)
     this.onUp = this.#up.bind(this)
@@ -68,8 +72,21 @@ export default class extends Controller {
     this.#closeMenu()
   }
 
+  // ── the lock ───────────────────────────────────────────────────────────
+  // A scroll that starts on a card is a gesture, not a scroll — see #down.
+  // The gutter is always safe to drag a thumb up, but a long roster needs
+  // more room than that strip, so Lock swaps every card back to a plain
+  // scrollable surface until it's tapped again.
+  toggleLock() {
+    this.locked = !this.locked
+    this.element.classList.toggle("is-locked", this.locked)
+    if (this.hasLockTarget) this.lockTarget.textContent = this.locked ? "Unlock" : "Lock"
+    if (this.hasHintTarget) this.hintTarget.textContent = this.locked ? HINT_LOCKED : HINT_DEFAULT
+  }
+
   // ── gestures ───────────────────────────────────────────────────────────
   #down(event) {
+    if (this.locked) return
     const card = event.target.closest("[data-player-id]")
     if (!card) return
     event.preventDefault()

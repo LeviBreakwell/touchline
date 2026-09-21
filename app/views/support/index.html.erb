@@ -1,0 +1,24 @@
+<% content_for :title, "Help & FAQ – Touchline" %>
+
+<%= back_button "Back", :back %>
+<h1 style="margin-bottom:0.25rem;">Help &amp; FAQ</h1>
+<p style="color:var(--gray-600);font-size:0.9rem;margin-bottom:1.5rem;">
+  Answers to what people ask most when they're new to a team on Touchline.
+</p>
+
+<% @sections.each do |section| %>
+  <h2 style="margin-bottom:0.5rem;"><%= section[:title] %></h2>
+  <div class="faq-group">
+    <% section[:questions].each do |item| %>
+      <details class="faq-item">
+        <summary><%= item[:q] %></summary>
+        <p><%= item[:a] %></p>
+      </details>
+    <% end %>
+  </div>
+  <div class="divider"></div>
+<% end %>
+
+<p style="text-align:center;font-size:0.85rem;color:var(--gray-400);margin-top:-0.5rem;">
+  Still stuck? Ask your team admin — they can see and manage everything from Team settings.
+</p>

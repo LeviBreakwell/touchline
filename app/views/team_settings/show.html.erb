@@ -3,6 +3,30 @@
 <%= back_button @team.name, team_path(@team) %>
 <h1 style="margin-bottom:1.25rem;">Team settings</h1>
 
+<%# ── JOIN REQUESTS ──
+    Pinned above everything else: an admin opening this page is very often
+    opening it because someone asked to join, and a request sitting below the
+    roster and the invite-link card was easy to miss without scrolling. %>
+<% if @settings.pending.any? %>
+  <div class="card" style="border-color:var(--green);margin-bottom:1.25rem;">
+    <div style="font-weight:600;margin-bottom:0.5rem;">
+      Join requests <span class="count"><%= @settings.pending.size %></span>
+    </div>
+    <% @settings.pending.each do |membership| %>
+      <div class="settings-row" style="padding:0.4rem 0;">
+        <div style="flex:1;min-width:0;">
+          <div><%= membership.user.name %></div>
+          <div class="card-meta"><%= membership.user.email_address %></div>
+        </div>
+        <%= button_to "Approve", team_membership_path(@team, membership), method: :patch,
+              params: { status: "accepted" }, class: "btn btn-primary btn-sm", data: { turbo: false } %>
+        <%= button_to "Decline", team_membership_path(@team, membership), method: :patch,
+              params: { status: "rejected" }, class: "btn btn-secondary btn-sm", data: { turbo: false } %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
 <div data-controller="dialog" data-dialog-open-value="<%= @player&.errors&.any? || false %>">
 
   <%# ── ROSTER ──
@@ -68,29 +92,11 @@
         data: { turbo_confirm: "This invalidates the current link. Anyone holding the old one won't be able to join. Continue?" } %>
 </div>
 
-<%# ── JOIN REQUESTS ── %>
+<%# ── MEMBERS ── %>
 <div class="divider"></div>
 <h2 style="margin-bottom:0.5rem;">
   Members <span class="count"><%= @settings.accepted.size %></span>
 </h2>
-
-<% if @settings.pending.any? %>
-  <div class="card" style="border-color:var(--green);margin-bottom:0.75rem;">
-    <div style="font-weight:600;margin-bottom:0.5rem;">Join requests</div>
-    <% @settings.pending.each do |membership| %>
-      <div class="settings-row" style="padding:0.4rem 0;">
-        <div style="flex:1;min-width:0;">
-          <div><%= membership.user.name %></div>
-          <div class="card-meta"><%= membership.user.email_address %></div>
-        </div>
-        <%= button_to "Approve", team_membership_path(@team, membership), method: :patch,
-              params: { status: "accepted" }, class: "btn btn-primary btn-sm", data: { turbo: false } %>
-        <%= button_to "Decline", team_membership_path(@team, membership), method: :patch,
-              params: { status: "rejected" }, class: "btn btn-secondary btn-sm", data: { turbo: false } %>
-      </div>
-    <% end %>
-  </div>
-<% end %>
 
 <% @settings.accepted.each do |membership| %>
   <div class="card settings-row">

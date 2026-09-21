@@ -32,7 +32,7 @@
     <% end %>
   </div>
 <% elsif @editable %>
-  <div data-controller="match-ladder"
+  <div data-controller="match-ladder dialog ladder-tour"
        data-match-ladder-hold-value="400"
        data-match-ladder-urls-value="<%= {
          touchdowns:  team_season_fixture_touchdowns_path(@team, @season, @fixture),
@@ -43,9 +43,15 @@
        }.to_json %>">
 
     <div class="ladder-hint">
-      <p>Tap a card for a try · drag one card onto another for the assist · hold for everything else.</p>
-      <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="undo"
-              data-action="match-ladder#undo" hidden>Undo</button>
+      <p data-match-ladder-target="hint">Tap a card for a try · drag one onto another for the assist · hold for everything else. To scroll, use the strip on the left edge.</p>
+      <div class="ladder-hint-actions">
+        <button type="button" class="btn-icon" data-action="ladder-tour#open"
+                title="How this screen works" aria-label="How this screen works">?</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="lock"
+                data-action="match-ladder#toggleLock">Lock</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="undo"
+                data-action="match-ladder#undo" hidden>Undo</button>
+      </div>
     </div>
 
     <div data-match-ladder-target="board">
@@ -55,6 +61,32 @@
     <svg class="drag-layer" data-match-ladder-target="dragLayer"></svg>
     <div class="drag-chip" data-match-ladder-target="dragChip"></div>
     <div class="ladder-toast" data-match-ladder-target="toast" role="status" aria-live="polite"></div>
+
+    <%# ── FIRST-VISIT TOUR ──
+        Shown once per browser (see ladder_tour_controller), and reopenable any
+        time from the "?" button above. Composes with the generic dialog
+        controller for backdrop/close so this one only has to decide *when* to
+        open and remember that it has. %>
+    <dialog class="modal" data-dialog-target="dialog" data-ladder-tour-target="dialog"
+            data-action="click->dialog#closeOnBackdrop close->ladder-tour#dismiss">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h2>Entering stats</h2>
+          <button type="button" class="modal-close" data-action="dialog#close" aria-label="Close">&times;</button>
+        </div>
+        <%# Each row's trailing text is one flex item, not bare children — a
+            flex container turns every child (including a nested <strong> and
+            the text around it) into its own box, which splits a sentence
+            with inline markup into misaligned columns. %>
+        <ul class="tour-list">
+          <li><span class="tour-mark try">tap</span> <span>a card on its own for a try.</span></li>
+          <li><span class="tour-mark assist">drag</span> <span>one card onto another — a try for who you drop on, an assist for who you dragged.</span></li>
+          <li><span class="tour-mark hold">hold</span> <span>a card for bomb catches, dropped bombs, critical errors, or to undo something on it.</span></li>
+          <li><span class="tour-mark scroll">scroll</span> <span>from the narrow strip on the left edge — the rest of every card is a tap/drag target. Tap <strong>Lock</strong> above the ladder to freeze entry while you scroll instead.</span></li>
+        </ul>
+        <button type="button" class="btn btn-primary btn-full" data-action="dialog#close">Got it</button>
+      </div>
+    </dialog>
   </div>
 <% else %>
   <%= render "fixtures/ladder", ladder: @ladder, editable: false %>

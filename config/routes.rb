@@ -50,6 +50,8 @@ Rails.application.routes.draw do
 
   get "/join/:invite_token", to: "invitations#show", as: :team_invite
 
+  get "/help", to: "support#index", as: :support
+
   root "home#index"
 
   get "up" => "rails/health#show", as: :rails_health_check
