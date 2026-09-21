@@ -4,9 +4,12 @@ class SpawtzScraper
   BASE_SPAWTZ = "https://trl.spawtz.com"
   USER_AGENT = "Touchline/1.0"
 
-  # Date | Time | Court | Opposition | Result. A finals row carries the round's
-  # name — "Semi Final 1", "Grand Final" — in an extra cell in front of the
-  # date, and nothing else about it differs.
+  # Date | Time | Court | Opposition | Result. A finals round is announced by
+  # its own single-cell "td.FTitle" row ("Semi Final 1", "Grand Final")
+  # immediately before the ordinary row it labels — Spawtz used to instead
+  # push the round name into an extra cell in front of the date on the same
+  # row, which the FINALS_CELLS case below still reads if that ever comes
+  # back.
   ORDINARY_CELLS = 5
   FINALS_CELLS   = 6
 
@@ -43,8 +46,16 @@ class SpawtzScraper
     record_standings(season, standings)
 
     seen_ids = []
+    pending_finals_label = nil
 
     doc.css("table tr").each do |row|
+      # A title row announces the round for the very next draw row and holds
+      # nothing else worth reading off it.
+      if (title = row.at_css("td.FTitle"))
+        pending_finals_label = title.text.strip.presence
+        next
+      end
+
       cells = row.css("td")
       next if cells.size < ORDINARY_CELLS
       next unless draw_row?(cells)
@@ -56,7 +67,8 @@ class SpawtzScraper
       date_str    = "#{cells[offset].text.strip} #{cells[offset + 1].text.strip}"
       opponent    = cells[offset + 3].text.strip
       result_str  = cells[offset + 4].text.strip
-      finals_label = offset.positive? ? cells[0].text.strip.presence : nil
+      finals_label = offset.positive? ? cells[0].text.strip.presence : pending_finals_label
+      pending_finals_label = nil
 
       next if opponent.blank?
 

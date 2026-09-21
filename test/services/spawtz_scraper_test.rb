@@ -213,6 +213,39 @@ class SpawtzScraperTest < ActiveSupport::TestCase
     assert final.final?
   end
 
+  # Spawtz has since moved the round name off the draw row entirely: a final
+  # is now announced by its own single-cell "td.FTitle" row immediately
+  # before the ordinary row it labels, which is how a real semi-final went
+  # unlabelled — the parser only ever looked for the label shifted into an
+  # extra cell on the row itself.
+  def finals_title_html(rows)
+    body = rows.map { |label, date, time, opponent, result|
+      title = label ? %(<tr><td class="FTitle">#{label}</td></tr>) : ""
+      "#{title}<tr><td>#{date}</td><td>#{time}</td><td>Field 1</td><td>#{opponent}</td><td>#{result}</td></tr>"
+    }.join
+    "<html><body><table>#{body}</table></body></html>"
+  end
+
+  test "a title row before the draw row labels it a final" do
+    sync_html(finals_title_html([
+      [ "Semi Final 2", "Mon 14 Sep 2026", "7:30PM", "Bardon Monday Individuals", "5 - 4" ]
+    ]))
+
+    final = @season.fixtures.sole
+    assert_equal "Semi Final 2", final.finals_label
+    assert final.final?
+  end
+
+  test "a title row's label does not leak onto the following week" do
+    sync_html(finals_title_html([
+      [ "Final", "Mon 14 Sep 2026", "7:30PM", "Bardon Monday Individuals", "5 - 4" ],
+      [ nil, "Mon 21 Sep 2026", "7:40PM", "Just The Lads", "(not played)" ]
+    ]))
+
+    assert_equal "Final", fixture_at("14 Sep 2026 7:30PM").finals_label
+    assert_nil fixture_at("21 Sep 2026 7:40PM").finals_label
+  end
+
   test "an ordinary row is not a final" do
     sync([ [ "Mon 27 Jul 2026", "8:25PM", "Le Mans", "5 - 4" ] ])
 
