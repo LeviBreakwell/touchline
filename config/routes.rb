@@ -44,6 +44,7 @@ Rails.application.routes.draw do
         resources :touchdowns,  only: %i[create destroy]
         resources :plays,       only: %i[create destroy]
         resources :appearances, only: %i[create destroy], param: :player_id
+        resource  :lock,        only: %i[update], controller: "fixture_locks"
       end
     end
   end

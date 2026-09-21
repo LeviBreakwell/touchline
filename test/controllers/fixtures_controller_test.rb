@@ -79,4 +79,22 @@ class FixturesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select ".card-meta", text: /Grand Final/
   end
+
+  # A lock is a property of the Fixture, not the tab that set it — the next
+  # visit has to open already frozen, before any JS has run.
+  test "a locked fixture reopens locked" do
+    @fixture.update!(locked: true)
+    get team_season_fixture_path(@team, @season, @fixture)
+
+    assert_select "[data-controller~=match-ladder].is-locked"
+    assert_select "[data-match-ladder-locked-value=?]", "true"
+    assert_select "[data-match-ladder-target=lock]", text: "Unlock"
+  end
+
+  test "an unlocked fixture reopens unlocked" do
+    get team_season_fixture_path(@team, @season, @fixture)
+
+    assert_select "[data-controller~=match-ladder].is-locked", count: 0
+    assert_select "[data-match-ladder-target=lock]", text: "Lock"
+  end
 end

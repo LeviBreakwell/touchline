@@ -42,12 +42,15 @@ const HINT_LOCKED = "Locked — scroll anywhere safely. Tap Unlock to enter stat
 
 export default class extends Controller {
   static targets = ["board", "gutter", "dragLayer", "dragChip", "toast", "undo", "hint", "lock"]
-  static values = { urls: Object, hold: { type: Number, default: 400 } }
+  static values = { urls: Object, hold: { type: Number, default: 400 }, locked: { type: Boolean, default: false } }
 
   connect() {
     this.undoStack = []
     this.gesture = null
-    this.locked = false
+    // The server already rendered this game's lock into the markup — class,
+    // button label, hint text — so only the in-memory flag that actually
+    // gates a gesture needs picking up here.
+    this.locked = this.lockedValue
     this.onDown = this.#down.bind(this)
     this.onMove = this.#move.bind(this)
     this.onUp = this.#up.bind(this)
@@ -77,11 +80,33 @@ export default class extends Controller {
   // The gutter is always safe to drag a thumb up, but a long roster needs
   // more room than that strip, so Lock swaps every card back to a plain
   // scrollable surface until it's tapped again.
-  toggleLock() {
-    this.locked = !this.locked
-    this.element.classList.toggle("is-locked", this.locked)
-    if (this.hasLockTarget) this.lockTarget.textContent = this.locked ? "Unlock" : "Lock"
-    if (this.hasHintTarget) this.hintTarget.textContent = this.locked ? HINT_LOCKED : HINT_DEFAULT
+  //
+  // A property of the Fixture, not this tab — see FixtureLocksController —
+  // so it has to be saved rather than merely flipped in memory. Waits for the
+  // save to land before moving the UI, same as every other write here: a
+  // "Locked" state the server never actually recorded would come back to bite
+  // whoever opens this screen next.
+  async toggleLock() {
+    const next = !this.locked
+    if (this.hasLockTarget) this.lockTarget.disabled = true
+
+    try {
+      const response = await fetch(this.urlsValue.lock, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...this.#csrfHeader() },
+        body: JSON.stringify({ locked: next })
+      })
+      if (!response.ok) throw new Error()
+
+      this.locked = next
+      this.element.classList.toggle("is-locked", next)
+      if (this.hasLockTarget) this.lockTarget.textContent = next ? "Unlock" : "Lock"
+      if (this.hasHintTarget) this.hintTarget.textContent = next ? HINT_LOCKED : HINT_DEFAULT
+    } catch {
+      this.#toast("Couldn't save that — check your connection")
+    } finally {
+      if (this.hasLockTarget) this.lockTarget.disabled = false
+    }
   }
 
   // ── gestures ───────────────────────────────────────────────────────────
@@ -233,11 +258,7 @@ export default class extends Controller {
     try {
       response = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "X-CSRF-Token": document.querySelector("meta[name=csrf-token]")?.content ?? ""
-        },
+        headers: { "Content-Type": "application/json", "Accept": "application/json", ...this.#csrfHeader() },
         body: body ? JSON.stringify(body) : null
       })
     } catch {
@@ -497,6 +518,8 @@ export default class extends Controller {
   }
 
   // ── helpers ────────────────────────────────────────────────────────────
+  #csrfHeader() { return { "X-CSRF-Token": document.querySelector("meta[name=csrf-token]")?.content ?? "" } }
+
   #cards() { return Array.from(this.element.querySelectorAll(".lcard[data-player-id]")) }
   #card(id) { return this.element.querySelector(`.lcard[data-player-id="${id}"]`) }
 

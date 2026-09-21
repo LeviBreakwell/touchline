@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -45,6 +45,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_20_000001) do
     t.integer "opponent_score"
     t.boolean "stats_verified", default: false, null: false
     t.string "finals_label"
+    t.boolean "locked", default: false, null: false
     t.index ["season_id"], name: "index_fixtures_on_season_id"
     t.index ["spawtz_fixture_id"], name: "index_fixtures_on_spawtz_fixture_id"
     t.index ["stats_verified"], name: "index_fixtures_on_stats_verified"

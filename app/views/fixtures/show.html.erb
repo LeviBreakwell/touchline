@@ -34,21 +34,24 @@
 <% elsif @editable %>
   <div data-controller="match-ladder dialog ladder-tour"
        data-match-ladder-hold-value="400"
+       data-match-ladder-locked-value="<%= @fixture.locked? %>"
        data-match-ladder-urls-value="<%= {
          touchdowns:  team_season_fixture_touchdowns_path(@team, @season, @fixture),
          plays:       team_season_fixture_plays_path(@team, @season, @fixture),
          appearances: team_season_fixture_appearances_path(@team, @season, @fixture),
          latestTouchdown: team_season_fixture_latest_touchdown_path(@team, @season, @fixture),
-         latestPlay:      team_season_fixture_latest_play_path(@team, @season, @fixture)
-       }.to_json %>">
+         latestPlay:      team_season_fixture_latest_play_path(@team, @season, @fixture),
+         lock:            team_season_fixture_lock_path(@team, @season, @fixture)
+       }.to_json %>"
+       class="<%= "is-locked" if @fixture.locked? %>">
 
     <div class="ladder-hint">
-      <p data-match-ladder-target="hint">Tap a card for a try · drag one onto another for the assist · hold for everything else. To scroll, use the strip on the left edge.</p>
+      <p data-match-ladder-target="hint"><%= @fixture.locked? ? "Locked — scroll anywhere safely. Tap Unlock to enter stats again." : "Tap a card for a try · drag one onto another for the assist · hold for everything else. To scroll, use the strip on the left edge." %></p>
       <div class="ladder-hint-actions">
         <button type="button" class="btn-icon" data-action="ladder-tour#open"
                 title="How this screen works" aria-label="How this screen works">?</button>
         <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="lock"
-                data-action="match-ladder#toggleLock">Lock</button>
+                data-action="match-ladder#toggleLock"><%= @fixture.locked? ? "Unlock" : "Lock" %></button>
         <button type="button" class="btn btn-secondary btn-sm" data-match-ladder-target="undo"
                 data-action="match-ladder#undo" hidden>Undo</button>
       </div>
