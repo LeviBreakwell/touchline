@@ -30,10 +30,20 @@ class Fixture < ApplicationRecord
   # "Grand Final" — and labels nothing else.
   def final? = finals_label.present?
 
-  # The two rounds where a loss ends the season: whatever "Preliminary Final"
-  # is called that week, and the Grand Final itself. Worth more XP than a
-  # semi, which is why this is its own check rather than reusing #final?.
-  MAJOR_FINAL_LABEL = /preliminary final|grand final/i
+  # Not every division gets a "Grand Final" — a smaller comp's draw can go
+  # straight from "Semi Final 2" to a bare "Final", and that bare "Final" is
+  # just as much the decider as a "Grand Final" anywhere else is. Anchored,
+  # not a substring test, so "Semi Final 2" — which also contains the word
+  # "Final" — is never mistaken for it. ^/$ rather than \A/\z: this source
+  # string is also handed to Postgres below, which has no \z of its own.
+  GRAND_FINAL_LABEL = /^(?:grand )?final$/i
+  def grand_final? = finals_label.to_s.match?(GRAND_FINAL_LABEL)
+
+  # The two rounds where a loss ends the season: whatever the decider is
+  # called that week, and the Preliminary Final that earns a shot at it.
+  # Worth more XP than a semi, which is why this is its own check rather than
+  # reusing #final?.
+  MAJOR_FINAL_LABEL = /^(?:grand |preliminary )?final$/i
   scope :major_final, -> { where("finals_label ~* ?", MAJOR_FINAL_LABEL.source) }
   def major_final? = finals_label.to_s.match?(MAJOR_FINAL_LABEL)
 

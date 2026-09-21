@@ -58,10 +58,13 @@ class AccoladeLedger
       ladder = MatchLadder.new(fixture, fixture.team)
       played = ladder.played
       subject = subject_for(fixture)
-      won_grand_final = grand_final_won?(fixture)
 
-      award_player(ladder.mvp.player, "mvp", subject) if ladder.mvp
-      award_player(ladder.mvp.player, "clive_churchill", subject) if ladder.mvp && won_grand_final
+      if ladder.mvp
+        award_player(ladder.mvp.player, "mvp", subject)
+        # Best player in the decider, win or lose — the real medal has gone to
+        # a losing side's best before, and is not "best of the winning team".
+        award_player(ladder.mvp.player, "clive_churchill", subject) if fixture.grand_final?
+      end
 
       played.each do |row|
         TREBLES.each { |stat, key| award_player(row.player, key, subject) if row[stat] >= TREBLE_MINIMUM }
@@ -71,7 +74,7 @@ class AccoladeLedger
         played.each { |row| award_player(row.player, "full_house", subject) }
       end
 
-      if won_grand_final
+      if fixture.grand_final? && fixture.result == "win"
         played.each { |row| award_player(row.player, "grand_final", subject) }
       end
     end
@@ -118,10 +121,6 @@ class AccoladeLedger
       Player.where(id: Appearance.joins(:fixture).where(fixtures: { season_id: season.id }).select(:player_id))
             .where.not(user_id: nil)
             .find_each { |player| award_player(player, key, subject_for(season)) }
-    end
-
-    def grand_final_won?(fixture)
-      fixture.finals_label.to_s.match?(/grand final/i) && fixture.result == "win"
     end
 
     def subject_for(record) = "#{record.class.name.downcase}:#{record.id}"

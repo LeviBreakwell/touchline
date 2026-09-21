@@ -95,12 +95,32 @@ class FixtureTest < ActiveSupport::TestCase
     assert f.major_final?
   end
 
-  test "a semi is a final but not a major final" do
+  # A smaller division's draw can go straight from a semi to a bare "Final" —
+  # no "Grand" in front of it — and that is just as much the decider as a
+  # "Grand Final" is anywhere else.
+  test "a bare Final is a grand final and a major final too" do
+    f = fixtures(:played_with_stats)
+    f.update!(finals_label: "Final")
+
+    assert f.grand_final?
+    assert f.major_final?
+  end
+
+  test "a semi is a final but not a major or grand final" do
     f = fixtures(:played_with_stats)
     f.update!(finals_label: "Semi Final 1")
 
     assert f.final?
     assert_not f.major_final?
+    assert_not f.grand_final?
+  end
+
+  test "a preliminary final is major but is not the grand final itself" do
+    f = fixtures(:played_with_stats)
+    f.update!(finals_label: "Preliminary Final")
+
+    assert f.major_final?
+    assert_not f.grand_final?
   end
 
   test "an ordinary round is neither" do

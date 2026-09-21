@@ -200,14 +200,37 @@ class AccoladeLedgerTest < ActiveSupport::TestCase
     assert_not_includes keys, "clive_churchill"
   end
 
-  test "losing a grand final does not earn the MVP a Clive Churchill Medal" do
-    lost = fixtures(:summer_final)
-    lost.update!(finals_label: "Grand Final", our_score: 1, opponent_score: 9)
-    lost.plays.create!(player: @jane, kind: :bomb_catch)
+  # Unlike "grand_final" (Premiership Winner), the medal is not "best of the
+  # winning team" — the real one has gone to a losing side's best before.
+  test "the Clive Churchill Medal goes to the MVP of a grand final even in a loss" do
+    @fixture.update!(finals_label: "Grand Final", our_score: 1, opponent_score: 9)
+    10.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
 
-    AccoladeLedger.settle_fixture(lost.reload)
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "clive_churchill"
+    assert_not_includes keys, "grand_final"
+  end
+
+  # A division without a "Grand" prefix on its decider still has one.
+  test "a bare Final label earns the medal just like a Grand Final does" do
+    @fixture.update!(finals_label: "Final")     # 10-2, a win
+    10.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "clive_churchill"
+    assert_includes keys, "grand_final"
+  end
+
+  test "a preliminary final win is not the premiership, and not the medal either" do
+    @fixture.update!(finals_label: "Preliminary Final")     # 10-2, a win
+    10.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
 
     assert_not_includes keys, "clive_churchill"
+    assert_not_includes keys, "grand_final"
   end
 
   # ── PER-SEASON REPEATABLES ────────────────────────────────────────────────
