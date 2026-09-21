@@ -171,7 +171,7 @@ class StatEntriesControllerTest < ActionDispatch::IntegrationTest
     post_json plays_path, player_id: players(:john).id, kind: "dropped_bomb"
     post_json plays_path, player_id: players(:john).id, kind: "critical_error"
 
-    assert_equal(-9, MatchLadder.new(@fixture, @team).played.find { |row| row.player == players(:john) }.points)
+    assert_equal(-7, MatchLadder.new(@fixture, @team).played.find { |row| row.player == players(:john) }.points)
   end
 
   test "a play never touches verification" do

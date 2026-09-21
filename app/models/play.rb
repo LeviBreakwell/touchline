@@ -12,7 +12,7 @@ class Play < ApplicationRecord
   POINTS = {
     bomb_catch:     1,
     dropped_bomb:   -1,
-    critical_error: -8
+    critical_error: -6
   }.freeze
 
   belongs_to :fixture

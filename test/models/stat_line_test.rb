@@ -83,9 +83,9 @@ class StatLineTest < ActiveSupport::TestCase
   end
 
   test "points counts plays, and can be dragged below a player's tries" do
-    record(:critical_error, 3)   # −24 against John's 84
+    record(:critical_error, 3)   # −18 against John's 84
 
-    assert_equal 60, players(:john).career_stats.points
+    assert_equal 66, players(:john).career_stats.points
   end
 
   test "a play is worth what it is worth, whichever way it points" do

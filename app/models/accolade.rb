@@ -68,7 +68,9 @@ class Accolade
     { key: "grand_final",       title: "Premiership Winner", rarity: :rare,  glyph: "grand-final",
       description: "Won a grand final" },
     { key: "top_of_the_ladder", title: "Minor Premier",     rarity: :rare,   glyph: "top-of-the-ladder",
-      description: "Finished top of the division" }
+      description: "Finished top of the division" },
+    { key: "clive_churchill",   title: "Clive Churchill Medal", rarity: :rare, glyph: "clive-churchill",
+      description: "MVP in a grand final" }
   ].freeze
 
   attr_reader :key, :title, :kind, :rarity, :glyph, :description, :stat, :threshold

@@ -1,9 +1,9 @@
 require "test_helper"
 
 class AccoladeTest < ActiveSupport::TestCase
-  test "six ladders of five rungs, and six repeatables" do
+  test "six ladders of five rungs, and seven repeatables" do
     assert_equal 30, Accolade.all.values.count(&:tiered?)
-    assert_equal 6, Accolade.all.values.count(&:repeatable?)
+    assert_equal 7, Accolade.all.values.count(&:repeatable?)
   end
 
   # A shared ladder cannot work: the same rungs on different stats are wildly

@@ -205,6 +205,7 @@ class Progression
     "critical_errors_15"    => "banner-bronze",
     "undefeated_season"     => "banner-slate",
     "grand_final"           => "banner-gold",
-    "top_of_the_ladder"     => "banner-gold"
+    "top_of_the_ladder"     => "banner-gold",
+    "clive_churchill"       => "banner-gold"
   }.freeze
 end

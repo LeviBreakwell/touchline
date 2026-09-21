@@ -21,7 +21,7 @@ const DRAG_THRESHOLD = 12
 const PLAY_KINDS = [
   { kind: "bomb_catch", label: "Bomb catch", value: "+1", sign: "plus" },
   { kind: "dropped_bomb", label: "Dropped bomb", value: "−1", sign: "minus" },
-  { kind: "critical_error", label: "Critical error", value: "−8", sign: "minus" }
+  { kind: "critical_error", label: "Critical error", value: "−6", sign: "minus" }
 ]
 
 // The Remove section of that same menu: undoing something entered by mistake

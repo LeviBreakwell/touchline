@@ -142,6 +142,34 @@ class AccoladeLedgerTest < ActiveSupport::TestCase
     assert_not_includes keys, "grand_final"
   end
 
+  test "the Clive Churchill Medal goes to the MVP of a won grand final" do
+    @fixture.update!(finals_label: "Grand Final")     # 10-2, a win
+    @fixture.appearances.create!(player: players(:john))
+    10.times { @fixture.plays.create!(player: @jane, kind: :bomb_catch) }
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_includes keys, "clive_churchill"
+  end
+
+  test "the MVP of an ordinary win is not awarded the Clive Churchill Medal" do
+    @fixture.touchdowns.create!(scorer: @jane)
+
+    AccoladeLedger.settle_fixture(@fixture.reload)
+
+    assert_not_includes keys, "clive_churchill"
+  end
+
+  test "losing a grand final does not earn the MVP a Clive Churchill Medal" do
+    lost = fixtures(:summer_final)
+    lost.update!(finals_label: "Grand Final", our_score: 1, opponent_score: 9)
+    lost.plays.create!(player: @jane, kind: :bomb_catch)
+
+    AccoladeLedger.settle_fixture(lost.reload)
+
+    assert_not_includes keys, "clive_churchill"
+  end
+
   # ── PER-SEASON REPEATABLES ────────────────────────────────────────────────
 
   test "an undefeated season needs every game played and none of them lost" do

@@ -50,8 +50,10 @@ class AccoladeLedger
       ladder = MatchLadder.new(fixture, fixture.team)
       played = ladder.played
       subject = subject_for(fixture)
+      won_grand_final = grand_final_won?(fixture)
 
       award_player(ladder.mvp.player, "mvp", subject) if ladder.mvp
+      award_player(ladder.mvp.player, "clive_churchill", subject) if ladder.mvp && won_grand_final
 
       played.each { |row| award_player(row.player, "hat_trick", subject) if row.tries >= 3 }
 
@@ -59,7 +61,7 @@ class AccoladeLedger
         played.each { |row| award_player(row.player, "full_house", subject) }
       end
 
-      if grand_final_won?(fixture)
+      if won_grand_final
         played.each { |row| award_player(row.player, "grand_final", subject) }
       end
     end

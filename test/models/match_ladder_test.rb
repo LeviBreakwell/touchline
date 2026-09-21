@@ -35,7 +35,7 @@ class MatchLadderTest < ActiveSupport::TestCase
     @fixture.plays.create!(player: players(:john), kind: :critical_error)
 
     assert_equal [ players(:jane), players(:john) ], ladder.played.map(&:player)
-    assert_equal(-8, row_for(players(:john)).points)
+    assert_equal(-6, row_for(players(:john)).points)
   end
 
   test "both negatives are collapsed into one column, and they stack" do
@@ -44,7 +44,7 @@ class MatchLadderTest < ActiveSupport::TestCase
 
     row = row_for(players(:john))
     assert_equal 2, row.negative_plays
-    assert_equal(-9, row.points)
+    assert_equal(-7, row.points)
   end
 
   test "MVP is the most points in the game, plays included" do

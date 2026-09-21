@@ -6,7 +6,7 @@ class PlayTest < ActiveSupport::TestCase
   test "the starter set is worth what #16 settled on" do
     assert_equal 1,  Play.new(kind: :bomb_catch).points
     assert_equal(-1, Play.new(kind: :dropped_bomb).points)
-    assert_equal(-8, Play.new(kind: :critical_error).points)
+    assert_equal(-6, Play.new(kind: :critical_error).points)
   end
 
   test "a play the app does not record cannot be written" do

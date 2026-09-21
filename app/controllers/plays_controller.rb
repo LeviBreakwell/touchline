@@ -5,7 +5,7 @@ class PlaysController < StatEntriesController
   LABELS = {
     "bomb_catch"     => "bomb catch +1",
     "dropped_bomb"   => "dropped bomb −1",
-    "critical_error" => "critical error −8"
+    "critical_error" => "critical error −6"
   }.freeze
 
   def create
