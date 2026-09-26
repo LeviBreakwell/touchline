@@ -1153,15 +1153,20 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
 
 /* ── card banners ──
    Eight of them and not one file: a banner is a wash behind a name, and a
-   gradient over tokens the app already has is the whole of what that needs. */
-.banner-green  { --banner: linear-gradient(100deg, rgba(34,197,94,0.16), transparent 62%); }
-.banner-blue   { --banner: linear-gradient(100deg, rgba(88,166,255,0.15), transparent 62%); }
-.banner-orange { --banner: linear-gradient(100deg, rgba(251,146,60,0.15), transparent 62%); }
-.banner-red    { --banner: linear-gradient(100deg, rgba(248,81,73,0.14), transparent 62%); }
-.banner-gold   { --banner: linear-gradient(100deg, rgba(247,221,138,0.16), transparent 62%); }
-.banner-silver { --banner: linear-gradient(100deg, rgba(238,242,246,0.12), transparent 62%); }
-.banner-bronze { --banner: linear-gradient(100deg, rgba(224,162,106,0.14), transparent 62%); }
-.banner-slate  { --banner: linear-gradient(100deg, rgba(173,186,199,0.12), transparent 62%); }
+   gradient over tokens the app already has is the whole of what that needs.
+   Each one is a single colour; the wash, the rim and the aura are all cut from
+   it, so a new banner is one line. */
+.banner-green  { --banner-rgb: 34,197,94; }
+.banner-blue   { --banner-rgb: 88,166,255; }
+.banner-orange { --banner-rgb: 251,146,60; }
+.banner-red    { --banner-rgb: 248,81,73; }
+.banner-gold   { --banner-rgb: 245,196,66; }
+.banner-silver { --banner-rgb: 238,242,246; }
+.banner-bronze { --banner-rgb: 224,162,106; }
+.banner-slate  { --banner-rgb: 173,186,199; }
+:is(.banner-green, .banner-blue, .banner-orange, .banner-red, .banner-gold, .banner-silver, .banner-bronze, .banner-slate) {
+  --banner: linear-gradient(100deg, rgba(var(--banner-rgb),0.42), rgba(var(--banner-rgb),0.14) 55%, transparent 85%);
+}
 
 /* The banner: a wash behind the name, and only a claimed Player has one.
 
@@ -1179,8 +1184,51 @@ h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; }
   z-index: -1;
   border-radius: 10px;
   background: var(--banner, none);
-  opacity: 0.55;
   pointer-events: none;
+}
+
+/* A faint wash on a dark card read as no colour at all, so a bannered card
+   also wears its colour on the rim — a solid edge on the left where the wash
+   starts, tinted all the way round. Held under the plain state rules with
+   :where, so an armed or targeted card on an editable ladder still says so. */
+.lcard:where(.banner-green, .banner-blue, .banner-orange, .banner-red, .banner-gold, .banner-silver, .banner-bronze, .banner-slate) {
+  border-color: rgba(var(--banner-rgb),0.45);
+  box-shadow: inset 3px 0 0 rgba(var(--banner-rgb),0.9);
+}
+
+/* The gold banners are the three hardest accolades in the game — a premiership,
+   a minor premiership, a Clive Churchill — so they do more than sit there: the
+   card breathes a gold aura and a sheen crosses it every few seconds. */
+@keyframes banner-aura {
+  0%, 100% { box-shadow: inset 3px 0 0 rgba(var(--banner-rgb),0.95), 0 0 4px 0 rgba(var(--banner-rgb),0.25); }
+  50%      { box-shadow: inset 3px 0 0 rgba(var(--banner-rgb),0.95), 0 0 14px 2px rgba(var(--banner-rgb),0.55); }
+}
+@keyframes banner-sheen {
+  0%, 60% { transform: translateX(-120%); }
+  100%    { transform: translateX(320%); }
+}
+.lcard:where(.banner-gold) {
+  border-color: rgba(var(--banner-rgb),0.7);
+  animation: banner-aura 2.6s ease-in-out infinite;
+  overflow: hidden;
+}
+/* The aura is an animation, which outranks any box-shadow a state rule sets,
+   so it steps aside while the card is being moved or has just moved. */
+.lcard.banner-gold:is(.armed, .target) { animation: none; }
+.lcard.banner-gold.just { animation: just-touched 820ms ease-out; }
+.lcard.banner-gold::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 35%;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent, rgba(var(--banner-rgb),0.28), transparent);
+  animation: banner-sheen 4.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lcard:where(.banner-gold) { animation: none; box-shadow: inset 3px 0 0 rgba(var(--banner-rgb),0.95), 0 0 10px 1px rgba(var(--banner-rgb),0.4); }
+  .lcard.banner-gold::after { display: none; }
 }
 
 /* The border sits on the portrait's own rim, which is why the avatar keeps no
